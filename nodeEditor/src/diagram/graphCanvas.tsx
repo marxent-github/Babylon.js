@@ -380,9 +380,9 @@ export class GraphCanvasComponent extends React.Component<IGraphCanvasComponentP
         // Update graph
         let dagreNodes = graph.nodes().map(node => graph.node(node));
         dagreNodes.forEach(dagreNode => {
-            if (dagreNode.type === "node") {
+            if ((dagreNode as any).type === "node") {
                 for (var node of this._nodes) {
-                    if (node.id === dagreNode.id) {
+                    if (node.id === (dagreNode as any).id) {
                         node.x = dagreNode.x - dagreNode.width / 2;
                         node.y = dagreNode.y - dagreNode.height / 2;
                         node.cleanAccumulation();
@@ -393,7 +393,7 @@ export class GraphCanvasComponent extends React.Component<IGraphCanvasComponentP
             }
 
             for (var frame of this._frames) {
-                if (frame.id === dagreNode.id) {                    
+                if (frame.id === (dagreNode as any).id) {                    
                     this._frameIsMoving = true;
                     frame.move(dagreNode.x - dagreNode.width / 2, dagreNode.y - dagreNode.height / 2, false);
                     frame.cleanAccumulation();

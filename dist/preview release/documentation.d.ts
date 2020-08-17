@@ -68528,8 +68528,9 @@ declare module BABYLON {
          * @param antialiasing Whether antialiasing should be turned on or not (default: false)
          * @param fileName A name for for the downloaded file.
          * @param renderSprites Whether the sprites should be rendered or not (default: false)
+         * @param enableStencilBuffer Whether the stencil buffer should be enabled or not (default: false)
          */
-        static CreateScreenshotUsingRenderTarget(engine: Engine, camera: Camera, size: IScreenshotSize | number, successCallback?: (data: string) => void, mimeType?: string, samples?: number, antialiasing?: boolean, fileName?: string, renderSprites?: boolean): void;
+        static CreateScreenshotUsingRenderTarget(engine: Engine, camera: Camera, size: IScreenshotSize | number, successCallback?: (data: string) => void, mimeType?: string, samples?: number, antialiasing?: boolean, fileName?: string, renderSprites?: boolean, enableStencilBuffer?: boolean): void;
         /**
          * Generates an image screenshot from the specified camera.
          * @see http://doc.babylonjs.com/how_to/render_scene_on_a_png
@@ -69413,6 +69414,7 @@ declare module BABYLON {
         shader: string;
     };
 }
+
 // Mixins
 interface Window {
     mozIndexedDB: IDBFactory;
@@ -74185,6 +74187,7 @@ declare module BABYLON.GUI {
         protected _arrangeChildren(): void;
     }
 }
+
 declare module BABYLON {
     /**
      * Configuration for glTF validation
@@ -76543,6 +76546,7 @@ declare module BABYLON {
         private _parseASCII;
     }
 }
+
 declare module BABYLON {
     /**
      * Class for generating OBJ data from a Babylon scene.
@@ -77721,6 +77725,7 @@ declare module BABYLON {
         static CreateSTL(meshes: Mesh[], download?: boolean, fileName?: string, binary?: boolean, isLittleEndian?: boolean): any;
     }
 }
+
 declare module "babylonjs-gltf2interface" {
     export = BABYLON.GLTF2;
 }
@@ -79626,6 +79631,7 @@ declare module BABYLON {
         static CreateDefaultMesh(name: string, scene: BABYLON.Scene): BABYLON.Mesh;
     }
 }
+
 declare module BABYLON {
     /** @hidden */
     export var asciiartPixelShader: {
@@ -79838,6 +79844,7 @@ declare module BABYLON {
         constructor(name: string, camera: BABYLON.Camera, options?: string | IDigitalRainPostProcessOptions);
     }
 }
+
 declare module BABYLON {
     /** @hidden */
     export var brickProceduralTexturePixelShader: {
@@ -80206,4 +80213,4 @@ declare module BABYLON {
          */
         static Parse(parsedTexture: any, scene: BABYLON.Scene, rootUrl: string): WoodProceduralTexture;
     }
-}
+}

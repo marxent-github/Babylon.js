@@ -68528,8 +68528,9 @@ declare module BABYLON {
          * @param antialiasing Whether antialiasing should be turned on or not (default: false)
          * @param fileName A name for for the downloaded file.
          * @param renderSprites Whether the sprites should be rendered or not (default: false)
+         * @param enableStencilBuffer Whether the stencil buffer should be enabled or not (default: false)
          */
-        static CreateScreenshotUsingRenderTarget(engine: Engine, camera: Camera, size: IScreenshotSize | number, successCallback?: (data: string) => void, mimeType?: string, samples?: number, antialiasing?: boolean, fileName?: string, renderSprites?: boolean): void;
+        static CreateScreenshotUsingRenderTarget(engine: Engine, camera: Camera, size: IScreenshotSize | number, successCallback?: (data: string) => void, mimeType?: string, samples?: number, antialiasing?: boolean, fileName?: string, renderSprites?: boolean, enableStencilBuffer?: boolean): void;
         /**
          * Generates an image screenshot from the specified camera.
          * @see http://doc.babylonjs.com/how_to/render_scene_on_a_png
@@ -69413,6 +69414,7 @@ declare module BABYLON {
         shader: string;
     };
 }
+
 // Mixins
 interface Window {
     mozIndexedDB: IDBFactory;

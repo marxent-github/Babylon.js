@@ -7,7 +7,7 @@
 		exports["babylonjs-inspector"] = factory(require("babylonjs-gui"), require("babylonjs-loaders"), require("babylonjs-materials"), require("babylonjs-serializers"), require("babylonjs"));
 	else
 		root["INSPECTOR"] = factory(root["BABYLON"]["GUI"], root["BABYLON"], root["BABYLON"], root["BABYLON"], root["BABYLON"]);
-})((typeof self !== "undefined" ? self : typeof global !== "undefined" ? global : this), function(__WEBPACK_EXTERNAL_MODULE_babylonjs_gui_2D_adtInstrumentation__, __WEBPACK_EXTERNAL_MODULE_babylonjs_loaders_glTF_index__, __WEBPACK_EXTERNAL_MODULE_babylonjs_materials_grid_gridMaterial__, __WEBPACK_EXTERNAL_MODULE_babylonjs_serializers_glTF_2_0_index__, __WEBPACK_EXTERNAL_MODULE_babylonjs_Misc_observable__) {
+})((typeof self !== "undefined" ? self : typeof global !== "undefined" ? global : this), function(__WEBPACK_EXTERNAL_MODULE_babylonjs_gui_2D_controls_image__, __WEBPACK_EXTERNAL_MODULE_babylonjs_loaders_glTF_index__, __WEBPACK_EXTERNAL_MODULE_babylonjs_materials_grid_gridMaterial__, __WEBPACK_EXTERNAL_MODULE_babylonjs_serializers_glTF_2_0_index__, __WEBPACK_EXTERNAL_MODULE_babylonjs_Misc_observable__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -97,9 +97,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ ({
 
 /***/ "../../node_modules/@fortawesome/fontawesome-svg-core/index.es.js":
-/*!**************************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/@fortawesome/fontawesome-svg-core/index.es.js ***!
-  \**************************************************************************************/
+/*!**************************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/@fortawesome/fontawesome-svg-core/index.es.js ***!
+  \**************************************************************************************************************************/
 /*! exports provided: icon, noAuto, config, toHtml, layer, text, counter, library, dom, parse, findIconDefinition */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -296,6 +296,7 @@ var PREFIX_TO_STYLE = {
   'fas': 'solid',
   'far': 'regular',
   'fal': 'light',
+  'fad': 'duotone',
   'fab': 'brands',
   'fa': 'solid'
 };
@@ -303,10 +304,11 @@ var STYLE_TO_PREFIX = {
   'solid': 'fas',
   'regular': 'far',
   'light': 'fal',
+  'duotone': 'fad',
   'brands': 'fab'
 };
 var LAYERS_TEXT_CLASSNAME = 'fa-layers-text';
-var FONT_FAMILY_PATTERN = /Font Awesome 5 (Solid|Regular|Light|Brands|Free|Pro)/;
+var FONT_FAMILY_PATTERN = /Font Awesome 5 (Solid|Regular|Light|Duotone|Brands|Free|Pro)/;
 var FONT_WEIGHT_TO_PREFIX = {
   '900': 'fas',
   '400': 'far',
@@ -316,7 +318,13 @@ var FONT_WEIGHT_TO_PREFIX = {
 var oneToTen = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 var oneToTwenty = oneToTen.concat([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
 var ATTRIBUTES_WATCHED_FOR_MUTATION = ['class', 'data-prefix', 'data-icon', 'data-fa-transform', 'data-fa-mask'];
-var RESERVED_CLASSES = ['xs', 'sm', 'lg', 'fw', 'ul', 'li', 'border', 'pull-left', 'pull-right', 'spin', 'pulse', 'rotate-90', 'rotate-180', 'rotate-270', 'flip-horizontal', 'flip-vertical', 'flip-both', 'stack', 'stack-1x', 'stack-2x', 'inverse', 'layers', 'layers-text', 'layers-counter'].concat(oneToTen.map(function (n) {
+var DUOTONE_CLASSES = {
+  GROUP: 'group',
+  SWAP_OPACITY: 'swap-opacity',
+  PRIMARY: 'primary',
+  SECONDARY: 'secondary'
+};
+var RESERVED_CLASSES = ['xs', 'sm', 'lg', 'fw', 'ul', 'li', 'border', 'pull-left', 'pull-right', 'spin', 'pulse', 'rotate-90', 'rotate-180', 'rotate-270', 'flip-horizontal', 'flip-vertical', 'flip-both', 'stack', 'stack-1x', 'stack-2x', 'inverse', 'layers', 'layers-text', 'layers-counter', DUOTONE_CLASSES.GROUP, DUOTONE_CLASSES.SWAP_OPACITY, DUOTONE_CLASSES.PRIMARY, DUOTONE_CLASSES.SECONDARY].concat(oneToTen.map(function (n) {
   return "".concat(n, "x");
 })).concat(oneToTwenty.map(function (n) {
   return "w-".concat(n);
@@ -840,11 +848,31 @@ var ALL_SPACE = {
   width: '100%',
   height: '100%'
 };
+
+function fillBlack(abstract) {
+  var force = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+  if (abstract.attributes && (abstract.attributes.fill || force)) {
+    abstract.attributes.fill = 'black';
+  }
+
+  return abstract;
+}
+
+function deGroup(abstract) {
+  if (abstract.tag === 'g') {
+    return abstract.children;
+  } else {
+    return [abstract];
+  }
+}
+
 function makeIconMasking (_ref) {
   var children = _ref.children,
       attributes = _ref.attributes,
       main = _ref.main,
       mask = _ref.mask,
+      explicitMaskId = _ref.maskId,
       transform = _ref.transform;
   var mainWidth = main.width,
       mainPath = main.icon;
@@ -861,23 +889,24 @@ function makeIconMasking (_ref) {
       fill: 'white'
     })
   };
+  var maskInnerGroupChildrenMixin = mainPath.children ? {
+    children: mainPath.children.map(fillBlack)
+  } : {};
   var maskInnerGroup = {
     tag: 'g',
     attributes: _objectSpread({}, trans.inner),
-    children: [{
-      tag: 'path',
-      attributes: _objectSpread({}, mainPath.attributes, trans.path, {
-        fill: 'black'
-      })
-    }]
+    children: [fillBlack(_objectSpread({
+      tag: mainPath.tag,
+      attributes: _objectSpread({}, mainPath.attributes, trans.path)
+    }, maskInnerGroupChildrenMixin))]
   };
   var maskOuterGroup = {
     tag: 'g',
     attributes: _objectSpread({}, trans.outer),
     children: [maskInnerGroup]
   };
-  var maskId = "mask-".concat(nextUniqueId());
-  var clipId = "clip-".concat(nextUniqueId());
+  var maskId = "mask-".concat(explicitMaskId || nextUniqueId());
+  var clipId = "clip-".concat(explicitMaskId || nextUniqueId());
   var maskTag = {
     tag: 'mask',
     attributes: _objectSpread({}, ALL_SPACE, {
@@ -894,7 +923,7 @@ function makeIconMasking (_ref) {
       attributes: {
         id: clipId
       },
-      children: [maskPath]
+      children: deGroup(maskPath)
     }, maskTag]
   };
   children.push(defs, {
@@ -1010,6 +1039,8 @@ function makeInlineSvgAbstract(params) {
       transform = params.transform,
       symbol = params.symbol,
       title = params.title,
+      maskId = params.maskId,
+      titleId = params.titleId,
       extra = params.extra,
       _params$watchable = params.watchable,
       watchable = _params$watchable === void 0 ? false : _params$watchable;
@@ -1041,7 +1072,7 @@ function makeInlineSvgAbstract(params) {
   if (title) content.children.push({
     tag: 'title',
     attributes: {
-      id: content.attributes['aria-labelledby'] || "title-".concat(nextUniqueId())
+      id: content.attributes['aria-labelledby'] || "title-".concat(titleId || nextUniqueId())
     },
     children: [title]
   });
@@ -1051,6 +1082,7 @@ function makeInlineSvgAbstract(params) {
     iconName: iconName,
     main: main,
     mask: mask,
+    maskId: maskId,
     transform: transform,
     symbol: symbol,
     styles: extra.styles
@@ -1169,7 +1201,7 @@ var p = config.measurePerformance && PERFORMANCE && PERFORMANCE.mark && PERFORMA
   mark: noop$1,
   measure: noop$1
 };
-var preamble = "FA \"5.9.0\"";
+var preamble = "FA \"5.14.0\"";
 
 var begin = function begin(name) {
   p.mark("".concat(preamble, " ").concat(name, " begins"));
@@ -1355,7 +1387,7 @@ function getCanonicalIcon(values) {
 
     if (styles$1[cls]) {
       acc.prefix = cls;
-    } else if (config.autoFetchSvg && ['fas', 'far', 'fal', 'fab', 'fa'].indexOf(cls) > -1) {
+    } else if (config.autoFetchSvg && ['fas', 'far', 'fal', 'fad', 'fab', 'fa'].indexOf(cls) > -1) {
       acc.prefix = cls;
     } else if (iconName) {
       var shim = acc.prefix === 'fa' ? byOldName(iconName) : {};
@@ -1435,6 +1467,7 @@ var mutators = {
 
     var forSvg = new RegExp("".concat(config.familyPrefix, "-.*"));
     delete abstract[0].attributes.style;
+    delete abstract[0].attributes.id;
     var splitClasses = abstract[0].attributes.class.split(' ').reduce(function (acc, cls) {
       if (cls === config.replacementClass || cls.match(forSvg)) {
         acc.toSvg.push(cls);
@@ -1673,10 +1706,11 @@ function attributesParser (node) {
     return acc;
   }, {});
   var title = node.getAttribute('title');
+  var titleId = node.getAttribute('data-fa-title-id');
 
   if (config.autoA11y) {
     if (title) {
-      extraAttributes['aria-labelledby'] = "".concat(config.replacementClass, "-title-").concat(nextUniqueId());
+      extraAttributes['aria-labelledby'] = "".concat(config.replacementClass, "-title-").concat(titleId || nextUniqueId());
     } else {
       extraAttributes['aria-hidden'] = 'true';
       extraAttributes['focusable'] = 'false';
@@ -1702,10 +1736,12 @@ function blankMeta() {
   return {
     iconName: null,
     title: null,
+    titleId: null,
     prefix: null,
     transform: meaninglessTransform,
     symbol: false,
     mask: null,
+    maskId: null,
     extra: {
       classes: [],
       styles: {},
@@ -1727,10 +1763,12 @@ function parseMeta(node) {
   return {
     iconName: iconName,
     title: node.getAttribute('title'),
+    titleId: node.getAttribute('data-fa-title-id'),
     prefix: prefix,
     transform: transform,
     symbol: symbol,
     mask: mask,
+    maskId: node.getAttribute('data-fa-mask-id'),
     extra: {
       classes: extraClasses,
       styles: extraStyles,
@@ -1818,6 +1856,55 @@ var missing = {
 };
 
 var styles$2 = namespace.styles;
+function asFoundIcon(icon) {
+  var width = icon[0];
+  var height = icon[1];
+
+  var _icon$slice = icon.slice(4),
+      _icon$slice2 = _slicedToArray(_icon$slice, 1),
+      vectorData = _icon$slice2[0];
+
+  var element = null;
+
+  if (Array.isArray(vectorData)) {
+    element = {
+      tag: 'g',
+      attributes: {
+        class: "".concat(config.familyPrefix, "-").concat(DUOTONE_CLASSES.GROUP)
+      },
+      children: [{
+        tag: 'path',
+        attributes: {
+          class: "".concat(config.familyPrefix, "-").concat(DUOTONE_CLASSES.SECONDARY),
+          fill: 'currentColor',
+          d: vectorData[0]
+        }
+      }, {
+        tag: 'path',
+        attributes: {
+          class: "".concat(config.familyPrefix, "-").concat(DUOTONE_CLASSES.PRIMARY),
+          fill: 'currentColor',
+          d: vectorData[1]
+        }
+      }]
+    };
+  } else {
+    element = {
+      tag: 'path',
+      attributes: {
+        fill: 'currentColor',
+        d: vectorData
+      }
+    };
+  }
+
+  return {
+    found: true,
+    width: width,
+    height: height,
+    icon: element
+  };
+}
 function findIcon(iconName, prefix) {
   return new picked(function (resolve, reject) {
     var val = {
@@ -1829,22 +1916,13 @@ function findIcon(iconName, prefix) {
 
     if (iconName && prefix && styles$2[prefix] && styles$2[prefix][iconName]) {
       var icon = styles$2[prefix][iconName];
-      var width = icon[0];
-      var height = icon[1];
-      var vectorData = icon.slice(4);
-      val = {
-        found: true,
-        width: width,
-        height: height,
-        icon: {
-          tag: 'path',
-          attributes: {
-            fill: 'currentColor',
-            d: vectorData[0]
-          }
-        }
-      };
-      return resolve(val);
+      return resolve(asFoundIcon(icon));
+    }
+
+    var headers = {};
+
+    if (_typeof(WINDOW.FontAwesomeKitConfig) === 'object' && typeof window.FontAwesomeKitConfig.token === 'string') {
+      headers['fa-kit-token'] = WINDOW.FontAwesomeKitConfig.token;
     }
 
     if (iconName && prefix && !config.showMissingIcons) {
@@ -1860,10 +1938,12 @@ var styles$3 = namespace.styles;
 function generateSvgReplacementMutation(node, nodeMeta) {
   var iconName = nodeMeta.iconName,
       title = nodeMeta.title,
+      titleId = nodeMeta.titleId,
       prefix = nodeMeta.prefix,
       transform = nodeMeta.transform,
       symbol = nodeMeta.symbol,
       mask = nodeMeta.mask,
+      maskId = nodeMeta.maskId,
       extra = nodeMeta.extra;
   return new picked(function (resolve, reject) {
     picked.all([findIcon(iconName, prefix), findIcon(mask.iconName, mask.prefix)]).then(function (_ref) {
@@ -1881,7 +1961,9 @@ function generateSvgReplacementMutation(node, nodeMeta) {
         transform: transform,
         symbol: symbol,
         mask: mask,
+        maskId: maskId,
         title: title,
+        titleId: titleId,
         extra: extra,
         watchable: true
       })]);
@@ -2022,6 +2104,7 @@ function replaceForPosition(node, position) {
     var styles = WINDOW.getComputedStyle(node, position);
     var fontFamily = styles.getPropertyValue('font-family').match(FONT_FAMILY_PATTERN);
     var fontWeight = styles.getPropertyValue('font-weight');
+    var content = styles.getPropertyValue('content');
 
     if (alreadyProcessedPseudoElement && !fontFamily) {
       // If we've already processed it but the current computed style does not result in a font-family,
@@ -2029,9 +2112,8 @@ function replaceForPosition(node, position) {
       // removed. So we now should delete the icon.
       node.removeChild(alreadyProcessedPseudoElement);
       return resolve();
-    } else if (fontFamily) {
-      var content = styles.getPropertyValue('content');
-      var prefix = ~['Light', 'Regular', 'Solid', 'Brands'].indexOf(fontFamily[1]) ? STYLE_TO_PREFIX[fontFamily[1].toLowerCase()] : FONT_WEIGHT_TO_PREFIX[fontWeight];
+    } else if (fontFamily && content !== 'none' && content !== '') {
+      var prefix = ~['Solid', 'Regular', 'Light', 'Duotone', 'Brands'].indexOf(fontFamily[1]) ? STYLE_TO_PREFIX[fontFamily[1].toLowerCase()] : FONT_WEIGHT_TO_PREFIX[fontWeight];
       var hexValue = toHex(content.length === 3 ? content.substr(1, 1) : content);
       var iconName = byUnicode(prefix, hexValue);
       var iconIdentifier = iconName; // Only convert the pseudo element in this :before/:after position into an icon if we haven't
@@ -2108,7 +2190,7 @@ function searchPseudoElements (root) {
   });
 }
 
-var baseStyles = "svg:not(:root).svg-inline--fa {\n  overflow: visible;\n}\n\n.svg-inline--fa {\n  display: inline-block;\n  font-size: inherit;\n  height: 1em;\n  overflow: visible;\n  vertical-align: -0.125em;\n}\n.svg-inline--fa.fa-lg {\n  vertical-align: -0.225em;\n}\n.svg-inline--fa.fa-w-1 {\n  width: 0.0625em;\n}\n.svg-inline--fa.fa-w-2 {\n  width: 0.125em;\n}\n.svg-inline--fa.fa-w-3 {\n  width: 0.1875em;\n}\n.svg-inline--fa.fa-w-4 {\n  width: 0.25em;\n}\n.svg-inline--fa.fa-w-5 {\n  width: 0.3125em;\n}\n.svg-inline--fa.fa-w-6 {\n  width: 0.375em;\n}\n.svg-inline--fa.fa-w-7 {\n  width: 0.4375em;\n}\n.svg-inline--fa.fa-w-8 {\n  width: 0.5em;\n}\n.svg-inline--fa.fa-w-9 {\n  width: 0.5625em;\n}\n.svg-inline--fa.fa-w-10 {\n  width: 0.625em;\n}\n.svg-inline--fa.fa-w-11 {\n  width: 0.6875em;\n}\n.svg-inline--fa.fa-w-12 {\n  width: 0.75em;\n}\n.svg-inline--fa.fa-w-13 {\n  width: 0.8125em;\n}\n.svg-inline--fa.fa-w-14 {\n  width: 0.875em;\n}\n.svg-inline--fa.fa-w-15 {\n  width: 0.9375em;\n}\n.svg-inline--fa.fa-w-16 {\n  width: 1em;\n}\n.svg-inline--fa.fa-w-17 {\n  width: 1.0625em;\n}\n.svg-inline--fa.fa-w-18 {\n  width: 1.125em;\n}\n.svg-inline--fa.fa-w-19 {\n  width: 1.1875em;\n}\n.svg-inline--fa.fa-w-20 {\n  width: 1.25em;\n}\n.svg-inline--fa.fa-pull-left {\n  margin-right: 0.3em;\n  width: auto;\n}\n.svg-inline--fa.fa-pull-right {\n  margin-left: 0.3em;\n  width: auto;\n}\n.svg-inline--fa.fa-border {\n  height: 1.5em;\n}\n.svg-inline--fa.fa-li {\n  width: 2em;\n}\n.svg-inline--fa.fa-fw {\n  width: 1.25em;\n}\n\n.fa-layers svg.svg-inline--fa {\n  bottom: 0;\n  left: 0;\n  margin: auto;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n\n.fa-layers {\n  display: inline-block;\n  height: 1em;\n  position: relative;\n  text-align: center;\n  vertical-align: -0.125em;\n  width: 1em;\n}\n.fa-layers svg.svg-inline--fa {\n  -webkit-transform-origin: center center;\n          transform-origin: center center;\n}\n\n.fa-layers-counter, .fa-layers-text {\n  display: inline-block;\n  position: absolute;\n  text-align: center;\n}\n\n.fa-layers-text {\n  left: 50%;\n  top: 50%;\n  -webkit-transform: translate(-50%, -50%);\n          transform: translate(-50%, -50%);\n  -webkit-transform-origin: center center;\n          transform-origin: center center;\n}\n\n.fa-layers-counter {\n  background-color: #ff253a;\n  border-radius: 1em;\n  -webkit-box-sizing: border-box;\n          box-sizing: border-box;\n  color: #fff;\n  height: 1.5em;\n  line-height: 1;\n  max-width: 5em;\n  min-width: 1.5em;\n  overflow: hidden;\n  padding: 0.25em;\n  right: 0;\n  text-overflow: ellipsis;\n  top: 0;\n  -webkit-transform: scale(0.25);\n          transform: scale(0.25);\n  -webkit-transform-origin: top right;\n          transform-origin: top right;\n}\n\n.fa-layers-bottom-right {\n  bottom: 0;\n  right: 0;\n  top: auto;\n  -webkit-transform: scale(0.25);\n          transform: scale(0.25);\n  -webkit-transform-origin: bottom right;\n          transform-origin: bottom right;\n}\n\n.fa-layers-bottom-left {\n  bottom: 0;\n  left: 0;\n  right: auto;\n  top: auto;\n  -webkit-transform: scale(0.25);\n          transform: scale(0.25);\n  -webkit-transform-origin: bottom left;\n          transform-origin: bottom left;\n}\n\n.fa-layers-top-right {\n  right: 0;\n  top: 0;\n  -webkit-transform: scale(0.25);\n          transform: scale(0.25);\n  -webkit-transform-origin: top right;\n          transform-origin: top right;\n}\n\n.fa-layers-top-left {\n  left: 0;\n  right: auto;\n  top: 0;\n  -webkit-transform: scale(0.25);\n          transform: scale(0.25);\n  -webkit-transform-origin: top left;\n          transform-origin: top left;\n}\n\n.fa-lg {\n  font-size: 1.3333333333em;\n  line-height: 0.75em;\n  vertical-align: -0.0667em;\n}\n\n.fa-xs {\n  font-size: 0.75em;\n}\n\n.fa-sm {\n  font-size: 0.875em;\n}\n\n.fa-1x {\n  font-size: 1em;\n}\n\n.fa-2x {\n  font-size: 2em;\n}\n\n.fa-3x {\n  font-size: 3em;\n}\n\n.fa-4x {\n  font-size: 4em;\n}\n\n.fa-5x {\n  font-size: 5em;\n}\n\n.fa-6x {\n  font-size: 6em;\n}\n\n.fa-7x {\n  font-size: 7em;\n}\n\n.fa-8x {\n  font-size: 8em;\n}\n\n.fa-9x {\n  font-size: 9em;\n}\n\n.fa-10x {\n  font-size: 10em;\n}\n\n.fa-fw {\n  text-align: center;\n  width: 1.25em;\n}\n\n.fa-ul {\n  list-style-type: none;\n  margin-left: 2.5em;\n  padding-left: 0;\n}\n.fa-ul > li {\n  position: relative;\n}\n\n.fa-li {\n  left: -2em;\n  position: absolute;\n  text-align: center;\n  width: 2em;\n  line-height: inherit;\n}\n\n.fa-border {\n  border: solid 0.08em #eee;\n  border-radius: 0.1em;\n  padding: 0.2em 0.25em 0.15em;\n}\n\n.fa-pull-left {\n  float: left;\n}\n\n.fa-pull-right {\n  float: right;\n}\n\n.fa.fa-pull-left,\n.fas.fa-pull-left,\n.far.fa-pull-left,\n.fal.fa-pull-left,\n.fab.fa-pull-left {\n  margin-right: 0.3em;\n}\n.fa.fa-pull-right,\n.fas.fa-pull-right,\n.far.fa-pull-right,\n.fal.fa-pull-right,\n.fab.fa-pull-right {\n  margin-left: 0.3em;\n}\n\n.fa-spin {\n  -webkit-animation: fa-spin 2s infinite linear;\n          animation: fa-spin 2s infinite linear;\n}\n\n.fa-pulse {\n  -webkit-animation: fa-spin 1s infinite steps(8);\n          animation: fa-spin 1s infinite steps(8);\n}\n\n@-webkit-keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg);\n  }\n}\n\n@keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg);\n  }\n}\n.fa-rotate-90 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=1)\";\n  -webkit-transform: rotate(90deg);\n          transform: rotate(90deg);\n}\n\n.fa-rotate-180 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=2)\";\n  -webkit-transform: rotate(180deg);\n          transform: rotate(180deg);\n}\n\n.fa-rotate-270 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=3)\";\n  -webkit-transform: rotate(270deg);\n          transform: rotate(270deg);\n}\n\n.fa-flip-horizontal {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)\";\n  -webkit-transform: scale(-1, 1);\n          transform: scale(-1, 1);\n}\n\n.fa-flip-vertical {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)\";\n  -webkit-transform: scale(1, -1);\n          transform: scale(1, -1);\n}\n\n.fa-flip-both, .fa-flip-horizontal.fa-flip-vertical {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)\";\n  -webkit-transform: scale(-1, -1);\n          transform: scale(-1, -1);\n}\n\n:root .fa-rotate-90,\n:root .fa-rotate-180,\n:root .fa-rotate-270,\n:root .fa-flip-horizontal,\n:root .fa-flip-vertical,\n:root .fa-flip-both {\n  -webkit-filter: none;\n          filter: none;\n}\n\n.fa-stack {\n  display: inline-block;\n  height: 2em;\n  position: relative;\n  width: 2.5em;\n}\n\n.fa-stack-1x,\n.fa-stack-2x {\n  bottom: 0;\n  left: 0;\n  margin: auto;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n\n.svg-inline--fa.fa-stack-1x {\n  height: 1em;\n  width: 1.25em;\n}\n.svg-inline--fa.fa-stack-2x {\n  height: 2em;\n  width: 2.5em;\n}\n\n.fa-inverse {\n  color: #fff;\n}\n\n.sr-only {\n  border: 0;\n  clip: rect(0, 0, 0, 0);\n  height: 1px;\n  margin: -1px;\n  overflow: hidden;\n  padding: 0;\n  position: absolute;\n  width: 1px;\n}\n\n.sr-only-focusable:active, .sr-only-focusable:focus {\n  clip: auto;\n  height: auto;\n  margin: 0;\n  overflow: visible;\n  position: static;\n  width: auto;\n}";
+var baseStyles = "svg:not(:root).svg-inline--fa {\n  overflow: visible;\n}\n\n.svg-inline--fa {\n  display: inline-block;\n  font-size: inherit;\n  height: 1em;\n  overflow: visible;\n  vertical-align: -0.125em;\n}\n.svg-inline--fa.fa-lg {\n  vertical-align: -0.225em;\n}\n.svg-inline--fa.fa-w-1 {\n  width: 0.0625em;\n}\n.svg-inline--fa.fa-w-2 {\n  width: 0.125em;\n}\n.svg-inline--fa.fa-w-3 {\n  width: 0.1875em;\n}\n.svg-inline--fa.fa-w-4 {\n  width: 0.25em;\n}\n.svg-inline--fa.fa-w-5 {\n  width: 0.3125em;\n}\n.svg-inline--fa.fa-w-6 {\n  width: 0.375em;\n}\n.svg-inline--fa.fa-w-7 {\n  width: 0.4375em;\n}\n.svg-inline--fa.fa-w-8 {\n  width: 0.5em;\n}\n.svg-inline--fa.fa-w-9 {\n  width: 0.5625em;\n}\n.svg-inline--fa.fa-w-10 {\n  width: 0.625em;\n}\n.svg-inline--fa.fa-w-11 {\n  width: 0.6875em;\n}\n.svg-inline--fa.fa-w-12 {\n  width: 0.75em;\n}\n.svg-inline--fa.fa-w-13 {\n  width: 0.8125em;\n}\n.svg-inline--fa.fa-w-14 {\n  width: 0.875em;\n}\n.svg-inline--fa.fa-w-15 {\n  width: 0.9375em;\n}\n.svg-inline--fa.fa-w-16 {\n  width: 1em;\n}\n.svg-inline--fa.fa-w-17 {\n  width: 1.0625em;\n}\n.svg-inline--fa.fa-w-18 {\n  width: 1.125em;\n}\n.svg-inline--fa.fa-w-19 {\n  width: 1.1875em;\n}\n.svg-inline--fa.fa-w-20 {\n  width: 1.25em;\n}\n.svg-inline--fa.fa-pull-left {\n  margin-right: 0.3em;\n  width: auto;\n}\n.svg-inline--fa.fa-pull-right {\n  margin-left: 0.3em;\n  width: auto;\n}\n.svg-inline--fa.fa-border {\n  height: 1.5em;\n}\n.svg-inline--fa.fa-li {\n  width: 2em;\n}\n.svg-inline--fa.fa-fw {\n  width: 1.25em;\n}\n\n.fa-layers svg.svg-inline--fa {\n  bottom: 0;\n  left: 0;\n  margin: auto;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n\n.fa-layers {\n  display: inline-block;\n  height: 1em;\n  position: relative;\n  text-align: center;\n  vertical-align: -0.125em;\n  width: 1em;\n}\n.fa-layers svg.svg-inline--fa {\n  -webkit-transform-origin: center center;\n          transform-origin: center center;\n}\n\n.fa-layers-counter, .fa-layers-text {\n  display: inline-block;\n  position: absolute;\n  text-align: center;\n}\n\n.fa-layers-text {\n  left: 50%;\n  top: 50%;\n  -webkit-transform: translate(-50%, -50%);\n          transform: translate(-50%, -50%);\n  -webkit-transform-origin: center center;\n          transform-origin: center center;\n}\n\n.fa-layers-counter {\n  background-color: #ff253a;\n  border-radius: 1em;\n  -webkit-box-sizing: border-box;\n          box-sizing: border-box;\n  color: #fff;\n  height: 1.5em;\n  line-height: 1;\n  max-width: 5em;\n  min-width: 1.5em;\n  overflow: hidden;\n  padding: 0.25em;\n  right: 0;\n  text-overflow: ellipsis;\n  top: 0;\n  -webkit-transform: scale(0.25);\n          transform: scale(0.25);\n  -webkit-transform-origin: top right;\n          transform-origin: top right;\n}\n\n.fa-layers-bottom-right {\n  bottom: 0;\n  right: 0;\n  top: auto;\n  -webkit-transform: scale(0.25);\n          transform: scale(0.25);\n  -webkit-transform-origin: bottom right;\n          transform-origin: bottom right;\n}\n\n.fa-layers-bottom-left {\n  bottom: 0;\n  left: 0;\n  right: auto;\n  top: auto;\n  -webkit-transform: scale(0.25);\n          transform: scale(0.25);\n  -webkit-transform-origin: bottom left;\n          transform-origin: bottom left;\n}\n\n.fa-layers-top-right {\n  right: 0;\n  top: 0;\n  -webkit-transform: scale(0.25);\n          transform: scale(0.25);\n  -webkit-transform-origin: top right;\n          transform-origin: top right;\n}\n\n.fa-layers-top-left {\n  left: 0;\n  right: auto;\n  top: 0;\n  -webkit-transform: scale(0.25);\n          transform: scale(0.25);\n  -webkit-transform-origin: top left;\n          transform-origin: top left;\n}\n\n.fa-lg {\n  font-size: 1.3333333333em;\n  line-height: 0.75em;\n  vertical-align: -0.0667em;\n}\n\n.fa-xs {\n  font-size: 0.75em;\n}\n\n.fa-sm {\n  font-size: 0.875em;\n}\n\n.fa-1x {\n  font-size: 1em;\n}\n\n.fa-2x {\n  font-size: 2em;\n}\n\n.fa-3x {\n  font-size: 3em;\n}\n\n.fa-4x {\n  font-size: 4em;\n}\n\n.fa-5x {\n  font-size: 5em;\n}\n\n.fa-6x {\n  font-size: 6em;\n}\n\n.fa-7x {\n  font-size: 7em;\n}\n\n.fa-8x {\n  font-size: 8em;\n}\n\n.fa-9x {\n  font-size: 9em;\n}\n\n.fa-10x {\n  font-size: 10em;\n}\n\n.fa-fw {\n  text-align: center;\n  width: 1.25em;\n}\n\n.fa-ul {\n  list-style-type: none;\n  margin-left: 2.5em;\n  padding-left: 0;\n}\n.fa-ul > li {\n  position: relative;\n}\n\n.fa-li {\n  left: -2em;\n  position: absolute;\n  text-align: center;\n  width: 2em;\n  line-height: inherit;\n}\n\n.fa-border {\n  border: solid 0.08em #eee;\n  border-radius: 0.1em;\n  padding: 0.2em 0.25em 0.15em;\n}\n\n.fa-pull-left {\n  float: left;\n}\n\n.fa-pull-right {\n  float: right;\n}\n\n.fa.fa-pull-left,\n.fas.fa-pull-left,\n.far.fa-pull-left,\n.fal.fa-pull-left,\n.fab.fa-pull-left {\n  margin-right: 0.3em;\n}\n.fa.fa-pull-right,\n.fas.fa-pull-right,\n.far.fa-pull-right,\n.fal.fa-pull-right,\n.fab.fa-pull-right {\n  margin-left: 0.3em;\n}\n\n.fa-spin {\n  -webkit-animation: fa-spin 2s infinite linear;\n          animation: fa-spin 2s infinite linear;\n}\n\n.fa-pulse {\n  -webkit-animation: fa-spin 1s infinite steps(8);\n          animation: fa-spin 1s infinite steps(8);\n}\n\n@-webkit-keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg);\n  }\n}\n\n@keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg);\n  }\n}\n.fa-rotate-90 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=1)\";\n  -webkit-transform: rotate(90deg);\n          transform: rotate(90deg);\n}\n\n.fa-rotate-180 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=2)\";\n  -webkit-transform: rotate(180deg);\n          transform: rotate(180deg);\n}\n\n.fa-rotate-270 {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=3)\";\n  -webkit-transform: rotate(270deg);\n          transform: rotate(270deg);\n}\n\n.fa-flip-horizontal {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)\";\n  -webkit-transform: scale(-1, 1);\n          transform: scale(-1, 1);\n}\n\n.fa-flip-vertical {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)\";\n  -webkit-transform: scale(1, -1);\n          transform: scale(1, -1);\n}\n\n.fa-flip-both, .fa-flip-horizontal.fa-flip-vertical {\n  -ms-filter: \"progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)\";\n  -webkit-transform: scale(-1, -1);\n          transform: scale(-1, -1);\n}\n\n:root .fa-rotate-90,\n:root .fa-rotate-180,\n:root .fa-rotate-270,\n:root .fa-flip-horizontal,\n:root .fa-flip-vertical,\n:root .fa-flip-both {\n  -webkit-filter: none;\n          filter: none;\n}\n\n.fa-stack {\n  display: inline-block;\n  height: 2em;\n  position: relative;\n  width: 2.5em;\n}\n\n.fa-stack-1x,\n.fa-stack-2x {\n  bottom: 0;\n  left: 0;\n  margin: auto;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n\n.svg-inline--fa.fa-stack-1x {\n  height: 1em;\n  width: 1.25em;\n}\n.svg-inline--fa.fa-stack-2x {\n  height: 2em;\n  width: 2.5em;\n}\n\n.fa-inverse {\n  color: #fff;\n}\n\n.sr-only {\n  border: 0;\n  clip: rect(0, 0, 0, 0);\n  height: 1px;\n  margin: -1px;\n  overflow: hidden;\n  padding: 0;\n  position: absolute;\n  width: 1px;\n}\n\n.sr-only-focusable:active, .sr-only-focusable:focus {\n  clip: auto;\n  height: auto;\n  margin: 0;\n  overflow: visible;\n  position: static;\n  width: auto;\n}\n\n.svg-inline--fa .fa-primary {\n  fill: var(--fa-primary-color, currentColor);\n  opacity: 1;\n  opacity: var(--fa-primary-opacity, 1);\n}\n\n.svg-inline--fa .fa-secondary {\n  fill: var(--fa-secondary-color, currentColor);\n  opacity: 0.4;\n  opacity: var(--fa-secondary-opacity, 0.4);\n}\n\n.svg-inline--fa.fa-swap-opacity .fa-primary {\n  opacity: 0.4;\n  opacity: var(--fa-secondary-opacity, 0.4);\n}\n\n.svg-inline--fa.fa-swap-opacity .fa-secondary {\n  opacity: 1;\n  opacity: var(--fa-primary-opacity, 1);\n}\n\n.svg-inline--fa mask .fa-primary,\n.svg-inline--fa mask .fa-secondary {\n  fill: black;\n}\n\n.fad.fa-inverse {\n  color: #fff;\n}";
 
 function css () {
   var dfp = DEFAULT_FAMILY_PREFIX;
@@ -2119,8 +2201,9 @@ function css () {
 
   if (fp !== dfp || rc !== drc) {
     var dPatt = new RegExp("\\.".concat(dfp, "\\-"), 'g');
+    var customPropPatt = new RegExp("\\--".concat(dfp, "\\-"), 'g');
     var rPatt = new RegExp("\\.".concat(drc), 'g');
-    s = s.replace(dPatt, ".".concat(fp, "-")).replace(rPatt, ".".concat(rc));
+    s = s.replace(dPatt, ".".concat(fp, "-")).replace(customPropPatt, "--".concat(fp, "-")).replace(rPatt, ".".concat(rc));
   }
 
   return s;
@@ -2176,24 +2259,6 @@ function () {
 
   return Library;
 }();
-
-function prepIcon(icon) {
-  var width = icon[0];
-  var height = icon[1];
-  var vectorData = icon.slice(4);
-  return {
-    found: true,
-    width: width,
-    height: height,
-    icon: {
-      tag: 'path',
-      attributes: {
-        fill: 'currentColor',
-        d: vectorData[0]
-      }
-    }
-  };
-}
 
 function ensureCss() {
   if (config.autoAddCss && !_cssInserted) {
@@ -2320,8 +2385,12 @@ var icon = resolveIcons(function (iconDefinition) {
       symbol = _params$symbol === void 0 ? false : _params$symbol,
       _params$mask = params.mask,
       mask = _params$mask === void 0 ? null : _params$mask,
+      _params$maskId = params.maskId,
+      maskId = _params$maskId === void 0 ? null : _params$maskId,
       _params$title = params.title,
       title = _params$title === void 0 ? null : _params$title,
+      _params$titleId = params.titleId,
+      titleId = _params$titleId === void 0 ? null : _params$titleId,
       _params$classes = params.classes,
       classes = _params$classes === void 0 ? [] : _params$classes,
       _params$attributes = params.attributes,
@@ -2339,7 +2408,7 @@ var icon = resolveIcons(function (iconDefinition) {
 
     if (config.autoA11y) {
       if (title) {
-        attributes['aria-labelledby'] = "".concat(config.replacementClass, "-title-").concat(nextUniqueId());
+        attributes['aria-labelledby'] = "".concat(config.replacementClass, "-title-").concat(titleId || nextUniqueId());
       } else {
         attributes['aria-hidden'] = 'true';
         attributes['focusable'] = 'false';
@@ -2348,8 +2417,8 @@ var icon = resolveIcons(function (iconDefinition) {
 
     return makeInlineSvgAbstract({
       icons: {
-        main: prepIcon(icon),
-        mask: mask ? prepIcon(mask.icon) : {
+        main: asFoundIcon(icon),
+        mask: mask ? asFoundIcon(mask.icon) : {
           found: false,
           width: null,
           height: null,
@@ -2361,6 +2430,8 @@ var icon = resolveIcons(function (iconDefinition) {
       transform: _objectSpread({}, meaninglessTransform, transform),
       symbol: symbol,
       title: title,
+      maskId: maskId,
+      titleId: titleId,
       extra: {
         attributes: attributes,
         styles: styles,
@@ -2425,6 +2496,9 @@ var counter = function counter(content) {
   });
 };
 var layer = function layer(assembler) {
+  var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var _params$classes4 = params.classes,
+      classes = _params$classes4 === void 0 ? [] : _params$classes4;
   return apiObject({
     type: 'layer'
   }, function () {
@@ -2438,7 +2512,7 @@ var layer = function layer(assembler) {
     return [{
       tag: 'span',
       attributes: {
-        class: "".concat(config.familyPrefix, "-layers")
+        class: ["".concat(config.familyPrefix, "-layers")].concat(_toConsumableArray(classes)).join(' ')
       },
       children: children
     }];
@@ -2474,9 +2548,9 @@ var autoReplace = function autoReplace() {
 /***/ }),
 
 /***/ "../../node_modules/@fortawesome/free-regular-svg-icons/index.es.js":
-/*!****************************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/@fortawesome/free-regular-svg-icons/index.es.js ***!
-  \****************************************************************************************/
+/*!****************************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/@fortawesome/free-regular-svg-icons/index.es.js ***!
+  \****************************************************************************************************************************/
 /*! exports provided: far, prefix, faAddressBook, faAddressCard, faAngry, faArrowAltCircleDown, faArrowAltCircleLeft, faArrowAltCircleRight, faArrowAltCircleUp, faBell, faBellSlash, faBookmark, faBuilding, faCalendar, faCalendarAlt, faCalendarCheck, faCalendarMinus, faCalendarPlus, faCalendarTimes, faCaretSquareDown, faCaretSquareLeft, faCaretSquareRight, faCaretSquareUp, faChartBar, faCheckCircle, faCheckSquare, faCircle, faClipboard, faClock, faClone, faClosedCaptioning, faComment, faCommentAlt, faCommentDots, faComments, faCompass, faCopy, faCopyright, faCreditCard, faDizzy, faDotCircle, faEdit, faEnvelope, faEnvelopeOpen, faEye, faEyeSlash, faFile, faFileAlt, faFileArchive, faFileAudio, faFileCode, faFileExcel, faFileImage, faFilePdf, faFilePowerpoint, faFileVideo, faFileWord, faFlag, faFlushed, faFolder, faFolderOpen, faFontAwesomeLogoFull, faFrown, faFrownOpen, faFutbol, faGem, faGrimace, faGrin, faGrinAlt, faGrinBeam, faGrinBeamSweat, faGrinHearts, faGrinSquint, faGrinSquintTears, faGrinStars, faGrinTears, faGrinTongue, faGrinTongueSquint, faGrinTongueWink, faGrinWink, faHandLizard, faHandPaper, faHandPeace, faHandPointDown, faHandPointLeft, faHandPointRight, faHandPointUp, faHandPointer, faHandRock, faHandScissors, faHandSpock, faHandshake, faHdd, faHeart, faHospital, faHourglass, faIdBadge, faIdCard, faImage, faImages, faKeyboard, faKiss, faKissBeam, faKissWinkHeart, faLaugh, faLaughBeam, faLaughSquint, faLaughWink, faLemon, faLifeRing, faLightbulb, faListAlt, faMap, faMeh, faMehBlank, faMehRollingEyes, faMinusSquare, faMoneyBillAlt, faMoon, faNewspaper, faObjectGroup, faObjectUngroup, faPaperPlane, faPauseCircle, faPlayCircle, faPlusSquare, faQuestionCircle, faRegistered, faSadCry, faSadTear, faSave, faShareSquare, faSmile, faSmileBeam, faSmileWink, faSnowflake, faSquare, faStar, faStarHalf, faStickyNote, faStopCircle, faSun, faSurprise, faThumbsDown, faThumbsUp, faTimesCircle, faTired, faTrashAlt, faUser, faUserCircle, faWindowClose, faWindowMaximize, faWindowMinimize, faWindowRestore */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -2954,9 +3028,9 @@ var _iconsCache = {
 /***/ }),
 
 /***/ "../../node_modules/@fortawesome/free-solid-svg-icons/index.es.js":
-/*!**************************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/@fortawesome/free-solid-svg-icons/index.es.js ***!
-  \**************************************************************************************/
+/*!**************************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/@fortawesome/free-solid-svg-icons/index.es.js ***!
+  \**************************************************************************************************************************/
 /*! exports provided: fas, prefix, faAd, faAddressBook, faAddressCard, faAdjust, faAirFreshener, faAlignCenter, faAlignJustify, faAlignLeft, faAlignRight, faAllergies, faAmbulance, faAmericanSignLanguageInterpreting, faAnchor, faAngleDoubleDown, faAngleDoubleLeft, faAngleDoubleRight, faAngleDoubleUp, faAngleDown, faAngleLeft, faAngleRight, faAngleUp, faAngry, faAnkh, faAppleAlt, faArchive, faArchway, faArrowAltCircleDown, faArrowAltCircleLeft, faArrowAltCircleRight, faArrowAltCircleUp, faArrowCircleDown, faArrowCircleLeft, faArrowCircleRight, faArrowCircleUp, faArrowDown, faArrowLeft, faArrowRight, faArrowUp, faArrowsAlt, faArrowsAltH, faArrowsAltV, faAssistiveListeningSystems, faAsterisk, faAt, faAtlas, faAtom, faAudioDescription, faAward, faBackspace, faBackward, faBalanceScale, faBan, faBandAid, faBarcode, faBars, faBaseballBall, faBasketballBall, faBath, faBatteryEmpty, faBatteryFull, faBatteryHalf, faBatteryQuarter, faBatteryThreeQuarters, faBed, faBeer, faBell, faBellSlash, faBezierCurve, faBible, faBicycle, faBinoculars, faBirthdayCake, faBlender, faBlenderPhone, faBlind, faBold, faBolt, faBomb, faBone, faBong, faBook, faBookDead, faBookOpen, faBookReader, faBookmark, faBowlingBall, faBox, faBoxOpen, faBoxes, faBraille, faBrain, faBriefcase, faBriefcaseMedical, faBroadcastTower, faBroom, faBrush, faBug, faBuilding, faBullhorn, faBullseye, faBurn, faBus, faBusAlt, faBusinessTime, faCalculator, faCalendar, faCalendarAlt, faCalendarCheck, faCalendarMinus, faCalendarPlus, faCalendarTimes, faCamera, faCameraRetro, faCampground, faCannabis, faCapsules, faCar, faCarAlt, faCarBattery, faCarCrash, faCarSide, faCaretDown, faCaretLeft, faCaretRight, faCaretSquareDown, faCaretSquareLeft, faCaretSquareRight, faCaretSquareUp, faCaretUp, faCartArrowDown, faCartPlus, faCat, faCertificate, faChair, faChalkboard, faChalkboardTeacher, faChargingStation, faChartArea, faChartBar, faChartLine, faChartPie, faCheck, faCheckCircle, faCheckDouble, faCheckSquare, faChess, faChessBishop, faChessBoard, faChessKing, faChessKnight, faChessPawn, faChessQueen, faChessRook, faChevronCircleDown, faChevronCircleLeft, faChevronCircleRight, faChevronCircleUp, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faChild, faChurch, faCircle, faCircleNotch, faCity, faClipboard, faClipboardCheck, faClipboardList, faClock, faClone, faClosedCaptioning, faCloud, faCloudDownloadAlt, faCloudMoon, faCloudSun, faCloudUploadAlt, faCocktail, faCode, faCodeBranch, faCoffee, faCog, faCogs, faCoins, faColumns, faComment, faCommentAlt, faCommentDollar, faCommentDots, faCommentSlash, faComments, faCommentsDollar, faCompactDisc, faCompass, faCompress, faConciergeBell, faCookie, faCookieBite, faCopy, faCopyright, faCouch, faCreditCard, faCrop, faCropAlt, faCross, faCrosshairs, faCrow, faCrown, faCube, faCubes, faCut, faDatabase, faDeaf, faDesktop, faDharmachakra, faDiagnoses, faDice, faDiceD20, faDiceD6, faDiceFive, faDiceFour, faDiceOne, faDiceSix, faDiceThree, faDiceTwo, faDigitalTachograph, faDirections, faDivide, faDizzy, faDna, faDog, faDollarSign, faDolly, faDollyFlatbed, faDonate, faDoorClosed, faDoorOpen, faDotCircle, faDove, faDownload, faDraftingCompass, faDragon, faDrawPolygon, faDrum, faDrumSteelpan, faDrumstickBite, faDumbbell, faDungeon, faEdit, faEject, faEllipsisH, faEllipsisV, faEnvelope, faEnvelopeOpen, faEnvelopeOpenText, faEnvelopeSquare, faEquals, faEraser, faEuroSign, faExchangeAlt, faExclamation, faExclamationCircle, faExclamationTriangle, faExpand, faExpandArrowsAlt, faExternalLinkAlt, faExternalLinkSquareAlt, faEye, faEyeDropper, faEyeSlash, faFastBackward, faFastForward, faFax, faFeather, faFeatherAlt, faFemale, faFighterJet, faFile, faFileAlt, faFileArchive, faFileAudio, faFileCode, faFileContract, faFileCsv, faFileDownload, faFileExcel, faFileExport, faFileImage, faFileImport, faFileInvoice, faFileInvoiceDollar, faFileMedical, faFileMedicalAlt, faFilePdf, faFilePowerpoint, faFilePrescription, faFileSignature, faFileUpload, faFileVideo, faFileWord, faFill, faFillDrip, faFilm, faFilter, faFingerprint, faFire, faFireExtinguisher, faFirstAid, faFish, faFistRaised, faFlag, faFlagCheckered, faFlask, faFlushed, faFolder, faFolderMinus, faFolderOpen, faFolderPlus, faFont, faFontAwesomeLogoFull, faFootballBall, faForward, faFrog, faFrown, faFrownOpen, faFunnelDollar, faFutbol, faGamepad, faGasPump, faGavel, faGem, faGenderless, faGhost, faGift, faGlassMartini, faGlassMartiniAlt, faGlasses, faGlobe, faGlobeAfrica, faGlobeAmericas, faGlobeAsia, faGolfBall, faGopuram, faGraduationCap, faGreaterThan, faGreaterThanEqual, faGrimace, faGrin, faGrinAlt, faGrinBeam, faGrinBeamSweat, faGrinHearts, faGrinSquint, faGrinSquintTears, faGrinStars, faGrinTears, faGrinTongue, faGrinTongueSquint, faGrinTongueWink, faGrinWink, faGripHorizontal, faGripVertical, faHSquare, faHammer, faHamsa, faHandHolding, faHandHoldingHeart, faHandHoldingUsd, faHandLizard, faHandPaper, faHandPeace, faHandPointDown, faHandPointLeft, faHandPointRight, faHandPointUp, faHandPointer, faHandRock, faHandScissors, faHandSpock, faHands, faHandsHelping, faHandshake, faHanukiah, faHashtag, faHatWizard, faHaykal, faHdd, faHeading, faHeadphones, faHeadphonesAlt, faHeadset, faHeart, faHeartbeat, faHelicopter, faHighlighter, faHiking, faHippo, faHistory, faHockeyPuck, faHome, faHorse, faHospital, faHospitalAlt, faHospitalSymbol, faHotTub, faHotel, faHourglass, faHourglassEnd, faHourglassHalf, faHourglassStart, faHouseDamage, faHryvnia, faICursor, faIdBadge, faIdCard, faIdCardAlt, faImage, faImages, faInbox, faIndent, faIndustry, faInfinity, faInfo, faInfoCircle, faItalic, faJedi, faJoint, faJournalWhills, faKaaba, faKey, faKeyboard, faKhanda, faKiss, faKissBeam, faKissWinkHeart, faKiwiBird, faLandmark, faLanguage, faLaptop, faLaptopCode, faLaugh, faLaughBeam, faLaughSquint, faLaughWink, faLayerGroup, faLeaf, faLemon, faLessThan, faLessThanEqual, faLevelDownAlt, faLevelUpAlt, faLifeRing, faLightbulb, faLink, faLiraSign, faList, faListAlt, faListOl, faListUl, faLocationArrow, faLock, faLockOpen, faLongArrowAltDown, faLongArrowAltLeft, faLongArrowAltRight, faLongArrowAltUp, faLowVision, faLuggageCart, faMagic, faMagnet, faMailBulk, faMale, faMap, faMapMarked, faMapMarkedAlt, faMapMarker, faMapMarkerAlt, faMapPin, faMapSigns, faMarker, faMars, faMarsDouble, faMarsStroke, faMarsStrokeH, faMarsStrokeV, faMask, faMedal, faMedkit, faMeh, faMehBlank, faMehRollingEyes, faMemory, faMenorah, faMercury, faMicrochip, faMicrophone, faMicrophoneAlt, faMicrophoneAltSlash, faMicrophoneSlash, faMicroscope, faMinus, faMinusCircle, faMinusSquare, faMobile, faMobileAlt, faMoneyBill, faMoneyBillAlt, faMoneyBillWave, faMoneyBillWaveAlt, faMoneyCheck, faMoneyCheckAlt, faMonument, faMoon, faMortarPestle, faMosque, faMotorcycle, faMountain, faMousePointer, faMusic, faNetworkWired, faNeuter, faNewspaper, faNotEqual, faNotesMedical, faObjectGroup, faObjectUngroup, faOilCan, faOm, faOtter, faOutdent, faPaintBrush, faPaintRoller, faPalette, faPallet, faPaperPlane, faPaperclip, faParachuteBox, faParagraph, faParking, faPassport, faPastafarianism, faPaste, faPause, faPauseCircle, faPaw, faPeace, faPen, faPenAlt, faPenFancy, faPenNib, faPenSquare, faPencilAlt, faPencilRuler, faPeopleCarry, faPercent, faPercentage, faPhone, faPhoneSlash, faPhoneSquare, faPhoneVolume, faPiggyBank, faPills, faPlaceOfWorship, faPlane, faPlaneArrival, faPlaneDeparture, faPlay, faPlayCircle, faPlug, faPlus, faPlusCircle, faPlusSquare, faPodcast, faPoll, faPollH, faPoo, faPoop, faPortrait, faPoundSign, faPowerOff, faPray, faPrayingHands, faPrescription, faPrescriptionBottle, faPrescriptionBottleAlt, faPrint, faProcedures, faProjectDiagram, faPuzzlePiece, faQrcode, faQuestion, faQuestionCircle, faQuidditch, faQuoteLeft, faQuoteRight, faQuran, faRandom, faReceipt, faRecycle, faRedo, faRedoAlt, faRegistered, faReply, faReplyAll, faRetweet, faRibbon, faRing, faRoad, faRobot, faRocket, faRoute, faRss, faRssSquare, faRubleSign, faRuler, faRulerCombined, faRulerHorizontal, faRulerVertical, faRunning, faRupeeSign, faSadCry, faSadTear, faSave, faSchool, faScrewdriver, faScroll, faSearch, faSearchDollar, faSearchLocation, faSearchMinus, faSearchPlus, faSeedling, faServer, faShapes, faShare, faShareAlt, faShareAltSquare, faShareSquare, faShekelSign, faShieldAlt, faShip, faShippingFast, faShoePrints, faShoppingBag, faShoppingBasket, faShoppingCart, faShower, faShuttleVan, faSign, faSignInAlt, faSignLanguage, faSignOutAlt, faSignal, faSignature, faSitemap, faSkull, faSkullCrossbones, faSlash, faSlidersH, faSmile, faSmileBeam, faSmileWink, faSmoking, faSmokingBan, faSnowflake, faSocks, faSolarPanel, faSort, faSortAlphaDown, faSortAlphaUp, faSortAmountDown, faSortAmountUp, faSortDown, faSortNumericDown, faSortNumericUp, faSortUp, faSpa, faSpaceShuttle, faSpider, faSpinner, faSplotch, faSprayCan, faSquare, faSquareFull, faSquareRootAlt, faStamp, faStar, faStarAndCrescent, faStarHalf, faStarHalfAlt, faStarOfDavid, faStarOfLife, faStepBackward, faStepForward, faStethoscope, faStickyNote, faStop, faStopCircle, faStopwatch, faStore, faStoreAlt, faStream, faStreetView, faStrikethrough, faStroopwafel, faSubscript, faSubway, faSuitcase, faSuitcaseRolling, faSun, faSuperscript, faSurprise, faSwatchbook, faSwimmer, faSwimmingPool, faSynagogue, faSync, faSyncAlt, faSyringe, faTable, faTableTennis, faTablet, faTabletAlt, faTablets, faTachometerAlt, faTag, faTags, faTape, faTasks, faTaxi, faTeeth, faTeethOpen, faTerminal, faTextHeight, faTextWidth, faTh, faThLarge, faThList, faTheaterMasks, faThermometer, faThermometerEmpty, faThermometerFull, faThermometerHalf, faThermometerQuarter, faThermometerThreeQuarters, faThumbsDown, faThumbsUp, faThumbtack, faTicketAlt, faTimes, faTimesCircle, faTint, faTintSlash, faTired, faToggleOff, faToggleOn, faToiletPaper, faToolbox, faTooth, faTorah, faToriiGate, faTractor, faTrademark, faTrafficLight, faTrain, faTransgender, faTransgenderAlt, faTrash, faTrashAlt, faTree, faTrophy, faTruck, faTruckLoading, faTruckMonster, faTruckMoving, faTruckPickup, faTshirt, faTty, faTv, faUmbrella, faUmbrellaBeach, faUnderline, faUndo, faUndoAlt, faUniversalAccess, faUniversity, faUnlink, faUnlock, faUnlockAlt, faUpload, faUser, faUserAlt, faUserAltSlash, faUserAstronaut, faUserCheck, faUserCircle, faUserClock, faUserCog, faUserEdit, faUserFriends, faUserGraduate, faUserInjured, faUserLock, faUserMd, faUserMinus, faUserNinja, faUserPlus, faUserSecret, faUserShield, faUserSlash, faUserTag, faUserTie, faUserTimes, faUsers, faUsersCog, faUtensilSpoon, faUtensils, faVectorSquare, faVenus, faVenusDouble, faVenusMars, faVial, faVials, faVideo, faVideoSlash, faVihara, faVolleyballBall, faVolumeDown, faVolumeMute, faVolumeOff, faVolumeUp, faVrCardboard, faWalking, faWallet, faWarehouse, faWeight, faWeightHanging, faWheelchair, faWifi, faWind, faWindowClose, faWindowMaximize, faWindowMinimize, faWindowRestore, faWineBottle, faWineGlass, faWineGlassAlt, faWonSign, faWrench, faXRay, faYenSign, faYinYang */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -5534,15 +5608,15 @@ var _iconsCache = {
 /***/ }),
 
 /***/ "../../node_modules/@fortawesome/react-fontawesome/index.es.js":
-/*!***********************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/@fortawesome/react-fontawesome/index.es.js ***!
-  \***********************************************************************************/
+/*!***********************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/@fortawesome/react-fontawesome/index.es.js ***!
+  \***********************************************************************************************************************/
 /*! exports provided: FontAwesomeIcon */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function(global) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FontAwesomeIcon", function() { return FontAwesomeIcon; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FontAwesomeIcon", function() { return FontAwesomeIcon; });
 /* harmony import */ var _fortawesome_fontawesome_svg_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @fortawesome/fontawesome-svg-core */ "../../node_modules/@fortawesome/fontawesome-svg-core/index.es.js");
 /* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! prop-types */ "../../node_modules/prop-types/index.js");
 /* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_1__);
@@ -5581,20 +5655,35 @@ function _defineProperty(obj, key, value) {
   return obj;
 }
 
-function _objectSpread(target) {
+function ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+    if (enumerableOnly) symbols = symbols.filter(function (sym) {
+      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+    });
+    keys.push.apply(keys, symbols);
+  }
+
+  return keys;
+}
+
+function _objectSpread2(target) {
   for (var i = 1; i < arguments.length; i++) {
     var source = arguments[i] != null ? arguments[i] : {};
-    var ownKeys = Object.keys(source);
 
-    if (typeof Object.getOwnPropertySymbols === 'function') {
-      ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
-        return Object.getOwnPropertyDescriptor(source, sym).enumerable;
-      }));
+    if (i % 2) {
+      ownKeys(Object(source), true).forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      });
+    } else if (Object.getOwnPropertyDescriptors) {
+      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+    } else {
+      ownKeys(Object(source)).forEach(function (key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      });
     }
-
-    ownKeys.forEach(function (key) {
-      _defineProperty(target, key, source[key]);
-    });
   }
 
   return target;
@@ -5656,143 +5745,62 @@ function _nonIterableSpread() {
   throw new TypeError("Invalid attempt to spread non-iterable instance");
 }
 
-var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+// Get CSS class list from a props object
+function classList(props) {
+  var _classes;
 
-function createCommonjsModule(fn, module) {
-	return module = { exports: {} }, fn(module, module.exports), module.exports;
+  var spin = props.spin,
+      pulse = props.pulse,
+      fixedWidth = props.fixedWidth,
+      inverse = props.inverse,
+      border = props.border,
+      listItem = props.listItem,
+      flip = props.flip,
+      size = props.size,
+      rotation = props.rotation,
+      pull = props.pull; // map of CSS class names to properties
+
+  var classes = (_classes = {
+    'fa-spin': spin,
+    'fa-pulse': pulse,
+    'fa-fw': fixedWidth,
+    'fa-inverse': inverse,
+    'fa-border': border,
+    'fa-li': listItem,
+    'fa-flip-horizontal': flip === 'horizontal' || flip === 'both',
+    'fa-flip-vertical': flip === 'vertical' || flip === 'both'
+  }, _defineProperty(_classes, "fa-".concat(size), typeof size !== 'undefined' && size !== null), _defineProperty(_classes, "fa-rotate-".concat(rotation), typeof rotation !== 'undefined' && rotation !== null && rotation !== 0), _defineProperty(_classes, "fa-pull-".concat(pull), typeof pull !== 'undefined' && pull !== null), _defineProperty(_classes, 'fa-swap-opacity', props.swapOpacity), _classes); // map over all the keys in the classes object
+  // return an array of the keys where the value for the key is not null
+
+  return Object.keys(classes).map(function (key) {
+    return classes[key] ? key : null;
+  }).filter(function (key) {
+    return key;
+  });
 }
 
-var humps = createCommonjsModule(function (module) {
-(function(global) {
+// Camelize taken from humps
+// humps is copyright © 2012+ Dom Christie
+// Released under the MIT license.
+// Performant way to determine if object coerces to a number
+function _isNumerical(obj) {
+  obj = obj - 0; // eslint-disable-next-line no-self-compare
 
-  var _processKeys = function(convert, obj, options) {
-    if(!_isObject(obj) || _isDate(obj) || _isRegExp(obj) || _isBoolean(obj) || _isFunction(obj)) {
-      return obj;
-    }
+  return obj === obj;
+}
 
-    var output,
-        i = 0,
-        l = 0;
+function camelize(string) {
+  if (_isNumerical(string)) {
+    return string;
+  } // eslint-disable-next-line no-useless-escape
 
-    if(_isArray(obj)) {
-      output = [];
-      for(l=obj.length; i<l; i++) {
-        output.push(_processKeys(convert, obj[i], options));
-      }
-    }
-    else {
-      output = {};
-      for(var key in obj) {
-        if(Object.prototype.hasOwnProperty.call(obj, key)) {
-          output[convert(key, options)] = _processKeys(convert, obj[key], options);
-        }
-      }
-    }
-    return output;
-  };
 
-  // String conversion methods
+  string = string.replace(/[\-_\s]+(.)?/g, function (match, chr) {
+    return chr ? chr.toUpperCase() : '';
+  }); // Ensure 1st char is always lowercase
 
-  var separateWords = function(string, options) {
-    options = options || {};
-    var separator = options.separator || '_';
-    var split = options.split || /(?=[A-Z])/;
-
-    return string.split(split).join(separator);
-  };
-
-  var camelize = function(string) {
-    if (_isNumerical(string)) {
-      return string;
-    }
-    string = string.replace(/[\-_\s]+(.)?/g, function(match, chr) {
-      return chr ? chr.toUpperCase() : '';
-    });
-    // Ensure 1st char is always lowercase
-    return string.substr(0, 1).toLowerCase() + string.substr(1);
-  };
-
-  var pascalize = function(string) {
-    var camelized = camelize(string);
-    // Ensure 1st char is always uppercase
-    return camelized.substr(0, 1).toUpperCase() + camelized.substr(1);
-  };
-
-  var decamelize = function(string, options) {
-    return separateWords(string, options).toLowerCase();
-  };
-
-  // Utilities
-  // Taken from Underscore.js
-
-  var toString = Object.prototype.toString;
-
-  var _isFunction = function(obj) {
-    return typeof(obj) === 'function';
-  };
-  var _isObject = function(obj) {
-    return obj === Object(obj);
-  };
-  var _isArray = function(obj) {
-    return toString.call(obj) == '[object Array]';
-  };
-  var _isDate = function(obj) {
-    return toString.call(obj) == '[object Date]';
-  };
-  var _isRegExp = function(obj) {
-    return toString.call(obj) == '[object RegExp]';
-  };
-  var _isBoolean = function(obj) {
-    return toString.call(obj) == '[object Boolean]';
-  };
-
-  // Performant way to determine if obj coerces to a number
-  var _isNumerical = function(obj) {
-    obj = obj - 0;
-    return obj === obj;
-  };
-
-  // Sets up function which handles processing keys
-  // allowing the convert function to be modified by a callback
-  var _processor = function(convert, options) {
-    var callback = options && 'process' in options ? options.process : options;
-
-    if(typeof(callback) !== 'function') {
-      return convert;
-    }
-
-    return function(string, options) {
-      return callback(string, convert, options);
-    }
-  };
-
-  var humps = {
-    camelize: camelize,
-    decamelize: decamelize,
-    pascalize: pascalize,
-    depascalize: decamelize,
-    camelizeKeys: function(object, options) {
-      return _processKeys(_processor(camelize, options), object);
-    },
-    decamelizeKeys: function(object, options) {
-      return _processKeys(_processor(decamelize, options), object, options);
-    },
-    pascalizeKeys: function(object, options) {
-      return _processKeys(_processor(pascalize, options), object);
-    },
-    depascalizeKeys: function () {
-      return this.decamelizeKeys.apply(this, arguments);
-    }
-  };
-
-  if (module.exports) {
-    module.exports = humps;
-  } else {
-    global.humps = humps;
-  }
-
-})(commonjsGlobal);
-});
+  return string.substr(0, 1).toLowerCase() + string.substr(1);
+}
 
 function capitalize(val) {
   return val.charAt(0).toUpperCase() + val.slice(1);
@@ -5805,7 +5813,7 @@ function styleToObject(style) {
     return s;
   }).reduce(function (acc, pair) {
     var i = pair.indexOf(':');
-    var prop = humps.camelize(pair.slice(0, i));
+    var prop = camelize(pair.slice(0, i));
     var value = pair.slice(i + 1).trim();
     prop.startsWith('webkit') ? acc[capitalize(prop)] = value : acc[prop] = value;
     return acc;
@@ -5822,6 +5830,8 @@ function convert(createElement, element) {
   var children = (element.children || []).map(function (child) {
     return convert(createElement, child);
   });
+  /* eslint-disable dot-notation */
+
   var mixins = Object.keys(element.attributes || {}).reduce(function (acc, key) {
     var val = element.attributes[key];
 
@@ -5839,7 +5849,7 @@ function convert(createElement, element) {
         if (key.indexOf('aria-') === 0 || key.indexOf('data-') === 0) {
           acc.attrs[key.toLowerCase()] = val;
         } else {
-          acc.attrs[humps.camelize(key)] = val;
+          acc.attrs[camelize(key)] = val;
         }
 
     }
@@ -5853,8 +5863,10 @@ function convert(createElement, element) {
       existingStyle = _extraProps$style === void 0 ? {} : _extraProps$style,
       remaining = _objectWithoutProperties(extraProps, ["style"]);
 
-  mixins.attrs['style'] = _objectSpread({}, mixins.attrs['style'], existingStyle);
-  return createElement.apply(void 0, [element.tag, _objectSpread({}, mixins.attrs, remaining)].concat(_toConsumableArray(children)));
+  mixins.attrs['style'] = _objectSpread2({}, mixins.attrs['style'], {}, existingStyle);
+  /* eslint-enable */
+
+  return createElement.apply(void 0, [element.tag, _objectSpread2({}, mixins.attrs, {}, remaining)].concat(_toConsumableArray(children)));
 }
 
 var PRODUCTION = false;
@@ -5871,55 +5883,51 @@ function log () {
   }
 }
 
+// Normalize icon arguments
+function normalizeIconArgs(icon) {
+  // if the icon is null, there's nothing to do
+  if (icon === null) {
+    return null;
+  } // if the icon is an object and has a prefix and an icon name, return it
+
+
+  if (_typeof(icon) === 'object' && icon.prefix && icon.iconName) {
+    return icon;
+  } // if it's an array with length of two
+
+
+  if (Array.isArray(icon) && icon.length === 2) {
+    // use the first item as prefix, second as icon name
+    return {
+      prefix: icon[0],
+      iconName: icon[1]
+    };
+  } // if it's a string, use it as the icon name
+
+
+  if (typeof icon === 'string') {
+    return {
+      prefix: 'fas',
+      iconName: icon
+    };
+  }
+}
+
+// creates an object with a key of key
+// and a value of value
+// if certain conditions are met
 function objectWithKey(key, value) {
+  // if the value is a non-empty array
+  // or it's not an array but it is truthy
+  // then create the object with the key and the value
+  // if not, return an empty array
   return Array.isArray(value) && value.length > 0 || !Array.isArray(value) && value ? _defineProperty({}, key, value) : {};
 }
 
-function classList(props) {
-  var _classes;
+function FontAwesomeIcon(_ref) {
+  var forwardedRef = _ref.forwardedRef,
+      props = _objectWithoutProperties(_ref, ["forwardedRef"]);
 
-  var classes = (_classes = {
-    'fa-spin': props.spin,
-    'fa-pulse': props.pulse,
-    'fa-fw': props.fixedWidth,
-    'fa-inverse': props.inverse,
-    'fa-border': props.border,
-    'fa-li': props.listItem,
-    'fa-flip-horizontal': props.flip === 'horizontal' || props.flip === 'both',
-    'fa-flip-vertical': props.flip === 'vertical' || props.flip === 'both'
-  }, _defineProperty(_classes, "fa-".concat(props.size), props.size !== null), _defineProperty(_classes, "fa-rotate-".concat(props.rotation), props.rotation !== null), _defineProperty(_classes, "fa-pull-".concat(props.pull), props.pull !== null), _classes);
-  return Object.keys(classes).map(function (key) {
-    return classes[key] ? key : null;
-  }).filter(function (key) {
-    return key;
-  });
-}
-
-function normalizeIconArgs(icon$$1) {
-  if (icon$$1 === null) {
-    return null;
-  }
-
-  if (_typeof(icon$$1) === 'object' && icon$$1.prefix && icon$$1.iconName) {
-    return icon$$1;
-  }
-
-  if (Array.isArray(icon$$1) && icon$$1.length === 2) {
-    return {
-      prefix: icon$$1[0],
-      iconName: icon$$1[1]
-    };
-  }
-
-  if (typeof icon$$1 === 'string') {
-    return {
-      prefix: 'fas',
-      iconName: icon$$1
-    };
-  }
-}
-
-function FontAwesomeIcon(props) {
   var iconArgs = props.icon,
       maskArgs = props.mask,
       symbol = props.symbol,
@@ -5929,7 +5937,7 @@ function FontAwesomeIcon(props) {
   var classes = objectWithKey('classes', [].concat(_toConsumableArray(classList(props)), _toConsumableArray(className.split(' '))));
   var transform = objectWithKey('transform', typeof props.transform === 'string' ? _fortawesome_fontawesome_svg_core__WEBPACK_IMPORTED_MODULE_0__["parse"].transform(props.transform) : props.transform);
   var mask = objectWithKey('mask', normalizeIconArgs(maskArgs));
-  var renderedIcon = Object(_fortawesome_fontawesome_svg_core__WEBPACK_IMPORTED_MODULE_0__["icon"])(iconLookup, _objectSpread({}, classes, transform, mask, {
+  var renderedIcon = Object(_fortawesome_fontawesome_svg_core__WEBPACK_IMPORTED_MODULE_0__["icon"])(iconLookup, _objectSpread2({}, classes, {}, transform, {}, mask, {
     symbol: symbol,
     title: title
   }));
@@ -5940,8 +5948,11 @@ function FontAwesomeIcon(props) {
   }
 
   var abstract = renderedIcon.abstract;
-  var extraProps = {};
+  var extraProps = {
+    ref: forwardedRef
+  };
   Object.keys(props).forEach(function (key) {
+    // eslint-disable-next-line no-prototype-builtins
     if (!FontAwesomeIcon.defaultProps.hasOwnProperty(key)) {
       extraProps[key] = props[key];
     }
@@ -5960,12 +5971,13 @@ FontAwesomeIcon.propTypes = {
   listItem: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.bool,
   pull: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.oneOf(['right', 'left']),
   pulse: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.bool,
-  rotation: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.oneOf([90, 180, 270]),
+  rotation: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.oneOf([0, 90, 180, 270]),
   size: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.oneOf(['lg', 'xs', 'sm', '1x', '2x', '3x', '4x', '5x', '6x', '7x', '8x', '9x', '10x']),
   spin: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.bool,
   symbol: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.oneOfType([prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.bool, prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.string]),
   title: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.string,
-  transform: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.oneOfType([prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.string, prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.object])
+  transform: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.oneOfType([prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.string, prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.object]),
+  swapOpacity: prop_types__WEBPACK_IMPORTED_MODULE_1___default.a.bool
 };
 FontAwesomeIcon.defaultProps = {
   border: false,
@@ -5983,20 +5995,20 @@ FontAwesomeIcon.defaultProps = {
   spin: false,
   symbol: false,
   title: '',
-  transform: null
+  transform: null,
+  swapOpacity: false
 };
 var convertCurry = convert.bind(null, react__WEBPACK_IMPORTED_MODULE_2___default.a.createElement);
 
 
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../webpack/buildin/global.js */ "../../node_modules/webpack/buildin/global.js")))
 
 /***/ }),
 
 /***/ "../../node_modules/classnames/index.js":
-/*!************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/classnames/index.js ***!
-  \************************************************************/
+/*!************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/classnames/index.js ***!
+  \************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -6055,10 +6067,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
 
 /***/ }),
 
-/***/ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./components/actionTabs/actionTabs.scss":
-/*!******************************************************************************************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/css-loader!C:/Repos/Babylon.js/node_modules/sass-loader/lib/loader.js!./components/actionTabs/actionTabs.scss ***!
-  \******************************************************************************************************************************************************/
+/***/ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/dist/cjs.js!./components/actionTabs/actionTabs.scss":
+/*!****************************************************************************************************************************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/css-loader!/Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/sass-loader/dist/cjs.js!./components/actionTabs/actionTabs.scss ***!
+  \****************************************************************************************************************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -6074,10 +6086,10 @@ exports.push([module.i, "#inspector-host {\n  position: absolute;\n  right: 0px;
 
 /***/ }),
 
-/***/ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./components/embedHost/embedHost.scss":
-/*!****************************************************************************************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/css-loader!C:/Repos/Babylon.js/node_modules/sass-loader/lib/loader.js!./components/embedHost/embedHost.scss ***!
-  \****************************************************************************************************************************************************/
+/***/ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/dist/cjs.js!./components/embedHost/embedHost.scss":
+/*!**************************************************************************************************************************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/css-loader!/Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/sass-loader/dist/cjs.js!./components/embedHost/embedHost.scss ***!
+  \**************************************************************************************************************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -6093,10 +6105,10 @@ exports.push([module.i, "#embed-host {\n  position: absolute;\n  right: 0px;\n  
 
 /***/ }),
 
-/***/ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./components/sceneExplorer/sceneExplorer.scss":
-/*!************************************************************************************************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/css-loader!C:/Repos/Babylon.js/node_modules/sass-loader/lib/loader.js!./components/sceneExplorer/sceneExplorer.scss ***!
-  \************************************************************************************************************************************************************/
+/***/ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/dist/cjs.js!./components/sceneExplorer/sceneExplorer.scss":
+/*!**********************************************************************************************************************************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/css-loader!/Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/sass-loader/dist/cjs.js!./components/sceneExplorer/sceneExplorer.scss ***!
+  \**********************************************************************************************************************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -6113,9 +6125,9 @@ exports.push([module.i, "#scene-explorer-host {\n  position: absolute;\n  left: 
 /***/ }),
 
 /***/ "../../node_modules/css-loader/lib/css-base.js":
-/*!*******************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/css-loader/lib/css-base.js ***!
-  \*******************************************************************/
+/*!*******************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/css-loader/lib/css-base.js ***!
+  \*******************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -6200,9 +6212,9 @@ function toComment(sourceMap) {
 /***/ }),
 
 /***/ "../../node_modules/object-assign/index.js":
-/*!***************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/object-assign/index.js ***!
-  \***************************************************************/
+/*!***************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/object-assign/index.js ***!
+  \***************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -6302,9 +6314,9 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 /***/ }),
 
 /***/ "../../node_modules/process/browser.js":
-/*!***********************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/process/browser.js ***!
-  \***********************************************************/
+/*!***********************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/process/browser.js ***!
+  \***********************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -6497,9 +6509,9 @@ process.umask = function() { return 0; };
 /***/ }),
 
 /***/ "../../node_modules/prop-types/checkPropTypes.js":
-/*!*********************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/prop-types/checkPropTypes.js ***!
-  \*********************************************************************/
+/*!*********************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/prop-types/checkPropTypes.js ***!
+  \*********************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -6611,9 +6623,9 @@ module.exports = checkPropTypes;
 /***/ }),
 
 /***/ "../../node_modules/prop-types/factoryWithTypeCheckers.js":
-/*!******************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/prop-types/factoryWithTypeCheckers.js ***!
-  \******************************************************************************/
+/*!******************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/prop-types/factoryWithTypeCheckers.js ***!
+  \******************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -7214,9 +7226,9 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
 /***/ }),
 
 /***/ "../../node_modules/prop-types/index.js":
-/*!************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/prop-types/index.js ***!
-  \************************************************************/
+/*!************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/prop-types/index.js ***!
+  \************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -7240,9 +7252,9 @@ if (true) {
 /***/ }),
 
 /***/ "../../node_modules/prop-types/lib/ReactPropTypesSecret.js":
-/*!*******************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/prop-types/lib/ReactPropTypesSecret.js ***!
-  \*******************************************************************************/
+/*!*******************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/prop-types/lib/ReactPropTypesSecret.js ***!
+  \*******************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -7264,9 +7276,9 @@ module.exports = ReactPropTypesSecret;
 /***/ }),
 
 /***/ "../../node_modules/re-resizable/lib/index.es5.js":
-/*!**********************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/re-resizable/lib/index.es5.js ***!
-  \**********************************************************************/
+/*!**********************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/re-resizable/lib/index.es5.js ***!
+  \**********************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -8013,9 +8025,9 @@ module.exports = Resizable;
 /***/ }),
 
 /***/ "../../node_modules/react-contextmenu/es6/AbstractMenu.js":
-/*!******************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-contextmenu/es6/AbstractMenu.js ***!
-  \******************************************************************************/
+/*!******************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-contextmenu/es6/AbstractMenu.js ***!
+  \******************************************************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -8210,9 +8222,9 @@ var _initialiseProps = function _initialiseProps() {
 /***/ }),
 
 /***/ "../../node_modules/react-contextmenu/es6/ContextMenu.js":
-/*!*****************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-contextmenu/es6/ContextMenu.js ***!
-  \*****************************************************************************/
+/*!*****************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-contextmenu/es6/ContextMenu.js ***!
+  \*****************************************************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -8520,9 +8532,9 @@ ContextMenu.defaultProps = {
 /***/ }),
 
 /***/ "../../node_modules/react-contextmenu/es6/ContextMenuTrigger.js":
-/*!************************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-contextmenu/es6/ContextMenuTrigger.js ***!
-  \************************************************************************************/
+/*!************************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-contextmenu/es6/ContextMenuTrigger.js ***!
+  \************************************************************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -8703,9 +8715,9 @@ ContextMenuTrigger.defaultProps = {
 /***/ }),
 
 /***/ "../../node_modules/react-contextmenu/es6/MenuItem.js":
-/*!**************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-contextmenu/es6/MenuItem.js ***!
-  \**************************************************************************/
+/*!**************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-contextmenu/es6/MenuItem.js ***!
+  \**************************************************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -8837,9 +8849,9 @@ MenuItem.defaultProps = {
 /***/ }),
 
 /***/ "../../node_modules/react-contextmenu/es6/SubMenu.js":
-/*!*************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-contextmenu/es6/SubMenu.js ***!
-  \*************************************************************************/
+/*!*************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-contextmenu/es6/SubMenu.js ***!
+  \*************************************************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -9171,9 +9183,9 @@ SubMenu.defaultProps = {
 /***/ }),
 
 /***/ "../../node_modules/react-contextmenu/es6/actions.js":
-/*!*************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-contextmenu/es6/actions.js ***!
-  \*************************************************************************/
+/*!*************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-contextmenu/es6/actions.js ***!
+  \*************************************************************************************************************/
 /*! exports provided: MENU_SHOW, MENU_HIDE, dispatchGlobalEvent, showMenu, hideMenu */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -9231,9 +9243,9 @@ function hideMenu() {
 /***/ }),
 
 /***/ "../../node_modules/react-contextmenu/es6/connectMenu.js":
-/*!*****************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-contextmenu/es6/connectMenu.js ***!
-  \*****************************************************************************/
+/*!*****************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-contextmenu/es6/connectMenu.js ***!
+  \*****************************************************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -9329,9 +9341,9 @@ var ignoredTriggerProps = [].concat(_toConsumableArray(Object.keys(_ContextMenuT
 /***/ }),
 
 /***/ "../../node_modules/react-contextmenu/es6/globalEventListener.js":
-/*!*************************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-contextmenu/es6/globalEventListener.js ***!
-  \*************************************************************************************/
+/*!*************************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-contextmenu/es6/globalEventListener.js ***!
+  \*************************************************************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -9391,9 +9403,9 @@ var GlobalEventListener = function GlobalEventListener() {
 /***/ }),
 
 /***/ "../../node_modules/react-contextmenu/es6/helpers.js":
-/*!*************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-contextmenu/es6/helpers.js ***!
-  \*************************************************************************/
+/*!*************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-contextmenu/es6/helpers.js ***!
+  \*************************************************************************************************************/
 /*! exports provided: callIfExists, hasOwnProp, uniqueId, cssClasses, store, canUseDOM */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -9440,9 +9452,9 @@ var canUseDOM = Boolean(typeof window !== 'undefined' && window.document && wind
 /***/ }),
 
 /***/ "../../node_modules/react-contextmenu/es6/index.js":
-/*!***********************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-contextmenu/es6/index.js ***!
-  \***********************************************************************/
+/*!***********************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-contextmenu/es6/index.js ***!
+  \***********************************************************************************************************/
 /*! exports provided: ContextMenu, ContextMenuTrigger, MenuItem, SubMenu, connectMenu, hideMenu, showMenu */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -9478,9 +9490,9 @@ __webpack_require__.r(__webpack_exports__);
 /***/ }),
 
 /***/ "../../node_modules/react-dom/cjs/react-dom.development.js":
-/*!*******************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-dom/cjs/react-dom.development.js ***!
-  \*******************************************************************************/
+/*!*******************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-dom/cjs/react-dom.development.js ***!
+  \*******************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -34705,9 +34717,9 @@ module.exports = reactDom;
 /***/ }),
 
 /***/ "../../node_modules/react-dom/index.js":
-/*!***********************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-dom/index.js ***!
-  \***********************************************************/
+/*!***********************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-dom/index.js ***!
+  \***********************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -34750,14 +34762,14 @@ if (false) {} else {
 /***/ }),
 
 /***/ "../../node_modules/react-is/cjs/react-is.development.js":
-/*!*****************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-is/cjs/react-is.development.js ***!
-  \*****************************************************************************/
+/*!*****************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-is/cjs/react-is.development.js ***!
+  \*****************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/** @license React v16.8.6
+/** @license React v16.13.1
  * react-is.development.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -34774,88 +34786,39 @@ if (true) {
   (function() {
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 // The Symbol used to tag the ReactElement-like types. If there is no native Symbol
 // nor polyfill, then a plain number is used for performance.
 var hasSymbol = typeof Symbol === 'function' && Symbol.for;
-
 var REACT_ELEMENT_TYPE = hasSymbol ? Symbol.for('react.element') : 0xeac7;
 var REACT_PORTAL_TYPE = hasSymbol ? Symbol.for('react.portal') : 0xeaca;
 var REACT_FRAGMENT_TYPE = hasSymbol ? Symbol.for('react.fragment') : 0xeacb;
 var REACT_STRICT_MODE_TYPE = hasSymbol ? Symbol.for('react.strict_mode') : 0xeacc;
 var REACT_PROFILER_TYPE = hasSymbol ? Symbol.for('react.profiler') : 0xead2;
 var REACT_PROVIDER_TYPE = hasSymbol ? Symbol.for('react.provider') : 0xeacd;
-var REACT_CONTEXT_TYPE = hasSymbol ? Symbol.for('react.context') : 0xeace;
+var REACT_CONTEXT_TYPE = hasSymbol ? Symbol.for('react.context') : 0xeace; // TODO: We don't use AsyncMode or ConcurrentMode anymore. They were temporary
+// (unstable) APIs that have been removed. Can we remove the symbols?
+
 var REACT_ASYNC_MODE_TYPE = hasSymbol ? Symbol.for('react.async_mode') : 0xeacf;
 var REACT_CONCURRENT_MODE_TYPE = hasSymbol ? Symbol.for('react.concurrent_mode') : 0xeacf;
 var REACT_FORWARD_REF_TYPE = hasSymbol ? Symbol.for('react.forward_ref') : 0xead0;
 var REACT_SUSPENSE_TYPE = hasSymbol ? Symbol.for('react.suspense') : 0xead1;
+var REACT_SUSPENSE_LIST_TYPE = hasSymbol ? Symbol.for('react.suspense_list') : 0xead8;
 var REACT_MEMO_TYPE = hasSymbol ? Symbol.for('react.memo') : 0xead3;
 var REACT_LAZY_TYPE = hasSymbol ? Symbol.for('react.lazy') : 0xead4;
+var REACT_BLOCK_TYPE = hasSymbol ? Symbol.for('react.block') : 0xead9;
+var REACT_FUNDAMENTAL_TYPE = hasSymbol ? Symbol.for('react.fundamental') : 0xead5;
+var REACT_RESPONDER_TYPE = hasSymbol ? Symbol.for('react.responder') : 0xead6;
+var REACT_SCOPE_TYPE = hasSymbol ? Symbol.for('react.scope') : 0xead7;
 
 function isValidElementType(type) {
-  return typeof type === 'string' || typeof type === 'function' ||
-  // Note: its typeof might be other than 'symbol' or 'number' if it's a polyfill.
-  type === REACT_FRAGMENT_TYPE || type === REACT_CONCURRENT_MODE_TYPE || type === REACT_PROFILER_TYPE || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || typeof type === 'object' && type !== null && (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE);
+  return typeof type === 'string' || typeof type === 'function' || // Note: its typeof might be other than 'symbol' or 'number' if it's a polyfill.
+  type === REACT_FRAGMENT_TYPE || type === REACT_CONCURRENT_MODE_TYPE || type === REACT_PROFILER_TYPE || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || type === REACT_SUSPENSE_LIST_TYPE || typeof type === 'object' && type !== null && (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE || type.$$typeof === REACT_FUNDAMENTAL_TYPE || type.$$typeof === REACT_RESPONDER_TYPE || type.$$typeof === REACT_SCOPE_TYPE || type.$$typeof === REACT_BLOCK_TYPE);
 }
-
-/**
- * Forked from fbjs/warning:
- * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
- *
- * Only change is we use console.warn instead of console.error,
- * and do nothing when 'console' is not supported.
- * This really simplifies the code.
- * ---
- * Similar to invariant but only logs a warning if the condition is not met.
- * This can be used to log issues in development environments in critical
- * paths. Removing the logging code for production environments will keep the
- * same logic and follow the same code paths.
- */
-
-var lowPriorityWarning = function () {};
-
-{
-  var printWarning = function (format) {
-    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-
-    var argIndex = 0;
-    var message = 'Warning: ' + format.replace(/%s/g, function () {
-      return args[argIndex++];
-    });
-    if (typeof console !== 'undefined') {
-      console.warn(message);
-    }
-    try {
-      // --- Welcome to debugging React ---
-      // This error was thrown as a convenience so that you can use this stack
-      // to find the callsite that caused this warning to fire.
-      throw new Error(message);
-    } catch (x) {}
-  };
-
-  lowPriorityWarning = function (condition, format) {
-    if (format === undefined) {
-      throw new Error('`lowPriorityWarning(condition, format, ...args)` requires a warning ' + 'message argument');
-    }
-    if (!condition) {
-      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-        args[_key2 - 2] = arguments[_key2];
-      }
-
-      printWarning.apply(undefined, [format].concat(args));
-    }
-  };
-}
-
-var lowPriorityWarning$1 = lowPriorityWarning;
 
 function typeOf(object) {
   if (typeof object === 'object' && object !== null) {
     var $$typeof = object.$$typeof;
+
     switch ($$typeof) {
       case REACT_ELEMENT_TYPE:
         var type = object.type;
@@ -34868,29 +34831,32 @@ function typeOf(object) {
           case REACT_STRICT_MODE_TYPE:
           case REACT_SUSPENSE_TYPE:
             return type;
+
           default:
             var $$typeofType = type && type.$$typeof;
 
             switch ($$typeofType) {
               case REACT_CONTEXT_TYPE:
               case REACT_FORWARD_REF_TYPE:
+              case REACT_LAZY_TYPE:
+              case REACT_MEMO_TYPE:
               case REACT_PROVIDER_TYPE:
                 return $$typeofType;
+
               default:
                 return $$typeof;
             }
+
         }
-      case REACT_LAZY_TYPE:
-      case REACT_MEMO_TYPE:
+
       case REACT_PORTAL_TYPE:
         return $$typeof;
     }
   }
 
   return undefined;
-}
+} // AsyncMode is deprecated along with isAsyncMode
 
-// AsyncMode is deprecated along with isAsyncMode
 var AsyncMode = REACT_ASYNC_MODE_TYPE;
 var ConcurrentMode = REACT_CONCURRENT_MODE_TYPE;
 var ContextConsumer = REACT_CONTEXT_TYPE;
@@ -34904,17 +34870,17 @@ var Portal = REACT_PORTAL_TYPE;
 var Profiler = REACT_PROFILER_TYPE;
 var StrictMode = REACT_STRICT_MODE_TYPE;
 var Suspense = REACT_SUSPENSE_TYPE;
+var hasWarnedAboutDeprecatedIsAsyncMode = false; // AsyncMode should be deprecated
 
-var hasWarnedAboutDeprecatedIsAsyncMode = false;
-
-// AsyncMode should be deprecated
 function isAsyncMode(object) {
   {
     if (!hasWarnedAboutDeprecatedIsAsyncMode) {
-      hasWarnedAboutDeprecatedIsAsyncMode = true;
-      lowPriorityWarning$1(false, 'The ReactIs.isAsyncMode() alias has been deprecated, ' + 'and will be removed in React 17+. Update your code to use ' + 'ReactIs.isConcurrentMode() instead. It has the exact same API.');
+      hasWarnedAboutDeprecatedIsAsyncMode = true; // Using console['warn'] to evade Babel and ESLint
+
+      console['warn']('The ReactIs.isAsyncMode() alias has been deprecated, ' + 'and will be removed in React 17+. Update your code to use ' + 'ReactIs.isConcurrentMode() instead. It has the exact same API.');
     }
   }
+
   return isConcurrentMode(object) || typeOf(object) === REACT_ASYNC_MODE_TYPE;
 }
 function isConcurrentMode(object) {
@@ -34954,7 +34920,6 @@ function isSuspense(object) {
   return typeOf(object) === REACT_SUSPENSE_TYPE;
 }
 
-exports.typeOf = typeOf;
 exports.AsyncMode = AsyncMode;
 exports.ConcurrentMode = ConcurrentMode;
 exports.ContextConsumer = ContextConsumer;
@@ -34968,7 +34933,6 @@ exports.Portal = Portal;
 exports.Profiler = Profiler;
 exports.StrictMode = StrictMode;
 exports.Suspense = Suspense;
-exports.isValidElementType = isValidElementType;
 exports.isAsyncMode = isAsyncMode;
 exports.isConcurrentMode = isConcurrentMode;
 exports.isContextConsumer = isContextConsumer;
@@ -34982,6 +34946,8 @@ exports.isPortal = isPortal;
 exports.isProfiler = isProfiler;
 exports.isStrictMode = isStrictMode;
 exports.isSuspense = isSuspense;
+exports.isValidElementType = isValidElementType;
+exports.typeOf = typeOf;
   })();
 }
 
@@ -34989,9 +34955,9 @@ exports.isSuspense = isSuspense;
 /***/ }),
 
 /***/ "../../node_modules/react-is/index.js":
-/*!**********************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react-is/index.js ***!
-  \**********************************************************/
+/*!**********************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react-is/index.js ***!
+  \**********************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -35006,9 +34972,9 @@ if (false) {} else {
 /***/ }),
 
 /***/ "../../node_modules/react/cjs/react.development.js":
-/*!***********************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react/cjs/react.development.js ***!
-  \***********************************************************************/
+/*!***********************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react/cjs/react.development.js ***!
+  \***********************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -37253,9 +37219,9 @@ module.exports = react;
 /***/ }),
 
 /***/ "../../node_modules/react/index.js":
-/*!*******************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/react/index.js ***!
-  \*******************************************************/
+/*!*******************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/react/index.js ***!
+  \*******************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -37270,9 +37236,9 @@ if (false) {} else {
 /***/ }),
 
 /***/ "../../node_modules/scheduler/cjs/scheduler-tracing.development.js":
-/*!***************************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/scheduler/cjs/scheduler-tracing.development.js ***!
-  \***************************************************************************************/
+/*!***************************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/scheduler/cjs/scheduler-tracing.development.js ***!
+  \***************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -37748,9 +37714,9 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 /***/ }),
 
 /***/ "../../node_modules/scheduler/cjs/scheduler.development.js":
-/*!*******************************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/scheduler/cjs/scheduler.development.js ***!
-  \*******************************************************************************/
+/*!*******************************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/scheduler/cjs/scheduler.development.js ***!
+  \*******************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -38661,9 +38627,9 @@ exports.unstable_getFirstCallbackNode = unstable_getFirstCallbackNode;
 /***/ }),
 
 /***/ "../../node_modules/scheduler/index.js":
-/*!***********************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/scheduler/index.js ***!
-  \***********************************************************/
+/*!***********************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/scheduler/index.js ***!
+  \***********************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -38678,9 +38644,9 @@ if (false) {} else {
 /***/ }),
 
 /***/ "../../node_modules/scheduler/tracing.js":
-/*!*************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/scheduler/tracing.js ***!
-  \*************************************************************/
+/*!*************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/scheduler/tracing.js ***!
+  \*************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -38695,9 +38661,9 @@ if (false) {} else {
 /***/ }),
 
 /***/ "../../node_modules/setimmediate/setImmediate.js":
-/*!*********************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/setimmediate/setImmediate.js ***!
-  \*********************************************************************/
+/*!*********************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/setimmediate/setImmediate.js ***!
+  \*********************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -38893,9 +38859,9 @@ if (false) {} else {
 /***/ }),
 
 /***/ "../../node_modules/split.js/dist/split.es.js":
-/*!******************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/split.js/dist/split.es.js ***!
-  \******************************************************************/
+/*!******************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/split.js/dist/split.es.js ***!
+  \******************************************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -38903,10 +38869,11 @@ if (false) {} else {
 __webpack_require__.r(__webpack_exports__);
 // The programming goals of Split.js are to deliver readable, understandable and
 // maintainable code, while at the same time manually optimizing for tiny minified file size,
-// browser compatibility without additional requirements, graceful fallback (IE8 is supported)
+// browser compatibility without additional requirements
 // and very few assumptions about the user's page layout.
-var global = window;
-var document = global.document;
+var global = typeof window !== 'undefined' ? window : null;
+var ssr = global === null;
+var document = !ssr ? global.document : undefined;
 
 // Save a couple long function names that are used frequently.
 // This optimization saves around 400 bytes.
@@ -38919,23 +38886,21 @@ var bGutterSize = '_c';
 var HORIZONTAL = 'horizontal';
 var NOOP = function () { return false; };
 
-// Figure out if we're in IE8 or not. IE8 will still render correctly,
-// but will be static instead of draggable.
-var isIE8 = global.attachEvent && !global[addEventListener];
-
 // Helper function determines which prefixes of CSS calc we need.
 // We only need to do this once on startup, when this anonymous function is called.
 //
 // Tests -webkit, -moz and -o prefixes. Modified from StackOverflow:
 // http://stackoverflow.com/questions/16625140/js-feature-detection-to-detect-the-usage-of-webkit-calc-over-calc/16625167#16625167
-var calc = (['', '-webkit-', '-moz-', '-o-']
-    .filter(function (prefix) {
-        var el = document.createElement('div');
-        el.style.cssText = "width:" + prefix + "calc(9px)";
+var calc = ssr
+    ? 'calc'
+    : ((['', '-webkit-', '-moz-', '-o-']
+          .filter(function (prefix) {
+              var el = document.createElement('div');
+              el.style.cssText = "width:" + prefix + "calc(9px)";
 
-        return !!el.style.length
-    })
-    .shift()) + "calc";
+              return !!el.style.length
+          })
+          .shift()) + "calc");
 
 // Helper function checks if its argument is a string-like type
 var isString = function (v) { return typeof v === 'string' || v instanceof String; };
@@ -38995,11 +38960,7 @@ var defaultElementStyleFn = function (dim, size, gutSize) {
     var style = {};
 
     if (!isString(size)) {
-        if (!isIE8) {
-            style[dim] = calc + "(" + size + "% - " + gutSize + "px)";
-        } else {
-            style[dim] = size + "%";
-        }
+        style[dim] = calc + "(" + size + "% - " + gutSize + "px)";
     } else {
         style[dim] = size;
     }
@@ -39042,6 +39003,8 @@ var defaultGutterStyleFn = function (dim, gutSize) {
 // 5. Actually size the pair elements, insert gutters and attach event listeners.
 var Split = function (idsOption, options) {
     if ( options === void 0 ) options = {};
+
+    if (ssr) { return {} }
 
     var ids = idsOption;
     var dimension;
@@ -39221,7 +39184,7 @@ var Split = function (idsOption, options) {
 
         // Call the drag callback continously. Don't do anything too intensive
         // in this callback.
-        getOption(options, 'onDrag', NOOP)();
+        getOption(options, 'onDrag', NOOP)(getSizes());
     }
 
     // Cache some important sizes when drag starts, so we don't have to do that
@@ -39532,30 +39495,27 @@ var Split = function (idsOption, options) {
         // staticly assigning sizes without draggable gutters. Assigns a string
         // to `size`.
         //
-        // IE9 and above
-        if (!isIE8) {
-            // Create gutter elements for each pair.
-            if (i > 0) {
-                var gutterElement = gutter(i, direction, element.element);
-                setGutterSize(gutterElement, gutterSize, i);
+        // Create gutter elements for each pair.
+        if (i > 0) {
+            var gutterElement = gutter(i, direction, element.element);
+            setGutterSize(gutterElement, gutterSize, i);
 
-                // Save bound event listener for removal later
-                pair[gutterStartDragging] = startDragging.bind(pair);
+            // Save bound event listener for removal later
+            pair[gutterStartDragging] = startDragging.bind(pair);
 
-                // Attach bound event listener
-                gutterElement[addEventListener](
-                    'mousedown',
-                    pair[gutterStartDragging]
-                );
-                gutterElement[addEventListener](
-                    'touchstart',
-                    pair[gutterStartDragging]
-                );
+            // Attach bound event listener
+            gutterElement[addEventListener](
+                'mousedown',
+                pair[gutterStartDragging]
+            );
+            gutterElement[addEventListener](
+                'touchstart',
+                pair[gutterStartDragging]
+            );
 
-                parent.insertBefore(gutterElement, element.element);
+            parent.insertBefore(gutterElement, element.element);
 
-                pair.gutter = gutterElement;
-            }
+            pair.gutter = gutterElement;
         }
 
         setElementSize(
@@ -39653,13 +39613,6 @@ var Split = function (idsOption, options) {
         });
     }
 
-    if (isIE8) {
-        return {
-            setSizes: setSizes,
-            destroy: destroy,
-        }
-    }
-
     return {
         setSizes: setSizes,
         getSizes: getSizes,
@@ -39678,9 +39631,9 @@ var Split = function (idsOption, options) {
 /***/ }),
 
 /***/ "../../node_modules/style-loader/lib/addStyles.js":
-/*!**********************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/style-loader/lib/addStyles.js ***!
-  \**********************************************************************/
+/*!**********************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/style-loader/lib/addStyles.js ***!
+  \**********************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -40069,9 +40022,9 @@ function updateLink (link, options, obj) {
 /***/ }),
 
 /***/ "../../node_modules/style-loader/lib/urls.js":
-/*!*****************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/style-loader/lib/urls.js ***!
-  \*****************************************************************/
+/*!*****************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/style-loader/lib/urls.js ***!
+  \*****************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -40169,9 +40122,9 @@ module.exports = function (css) {
 /***/ }),
 
 /***/ "../../node_modules/timers-browserify/main.js":
-/*!******************************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/timers-browserify/main.js ***!
-  \******************************************************************/
+/*!******************************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/timers-browserify/main.js ***!
+  \******************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -40244,10 +40197,10 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /***/ }),
 
 /***/ "../../node_modules/tslib/tslib.es6.js":
-/*!***********************************************************!*\
-  !*** C:/Repos/Babylon.js/node_modules/tslib/tslib.es6.js ***!
-  \***********************************************************/
-/*! exports provided: __extends, __assign, __rest, __decorate, __param, __metadata, __awaiter, __generator, __exportStar, __values, __read, __spread, __spreadArrays, __await, __asyncGenerator, __asyncDelegator, __asyncValues, __makeTemplateObject, __importStar, __importDefault */
+/*!***********************************************************************************************!*\
+  !*** /Users/JonJekeli/Documents/GitProjects/forked-Babylonjs/node_modules/tslib/tslib.es6.js ***!
+  \***********************************************************************************************/
+/*! exports provided: __extends, __assign, __rest, __decorate, __param, __metadata, __awaiter, __generator, __createBinding, __exportStar, __values, __read, __spread, __spreadArrays, __await, __asyncGenerator, __asyncDelegator, __asyncValues, __makeTemplateObject, __importStar, __importDefault, __classPrivateFieldGet, __classPrivateFieldSet */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -40260,6 +40213,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__metadata", function() { return __metadata; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__awaiter", function() { return __awaiter; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__generator", function() { return __generator; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__createBinding", function() { return __createBinding; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__exportStar", function() { return __exportStar; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__values", function() { return __values; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__read", function() { return __read; });
@@ -40272,19 +40226,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__makeTemplateObject", function() { return __makeTemplateObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__importStar", function() { return __importStar; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__importDefault", function() { return __importDefault; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__classPrivateFieldGet", function() { return __classPrivateFieldGet; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "__classPrivateFieldSet", function() { return __classPrivateFieldSet; });
 /*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
+Copyright (c) Microsoft Corporation.
 
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
 
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
 /* global Reflect, Promise */
 
@@ -40340,10 +40296,11 @@ function __metadata(metadataKey, metadataValue) {
 }
 
 function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 }
@@ -40376,19 +40333,25 @@ function __generator(thisArg, body) {
     }
 }
 
+function __createBinding(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}
+
 function __exportStar(m, exports) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+    for (var p in m) if (p !== "default" && !exports.hasOwnProperty(p)) exports[p] = m[p];
 }
 
 function __values(o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
-    return {
+    if (o && typeof o.length === "number") return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 }
 
 function __read(o, n) {
@@ -40469,6 +40432,21 @@ function __importDefault(mod) {
     return (mod && mod.__esModule) ? mod : { default: mod };
 }
 
+function __classPrivateFieldGet(receiver, privateMap) {
+    if (!privateMap.has(receiver)) {
+        throw new TypeError("attempted to get private field on non-instance");
+    }
+    return privateMap.get(receiver);
+}
+
+function __classPrivateFieldSet(receiver, privateMap, value) {
+    if (!privateMap.has(receiver)) {
+        throw new TypeError("attempted to set private field on non-instance");
+    }
+    privateMap.set(receiver, value);
+    return value;
+}
+
 
 /***/ }),
 
@@ -40511,7 +40489,7 @@ module.exports = g;
 /***/ (function(module, exports, __webpack_require__) {
 
 
-var content = __webpack_require__(/*! !../../../../node_modules/css-loader!../../../../node_modules/sass-loader/lib/loader.js!./actionTabs.scss */ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./components/actionTabs/actionTabs.scss");
+var content = __webpack_require__(/*! !../../../../node_modules/css-loader!../../../../node_modules/sass-loader/dist/cjs.js!./actionTabs.scss */ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/dist/cjs.js!./components/actionTabs/actionTabs.scss");
 
 if(typeof content === 'string') content = [[module.i, content, '']];
 
@@ -43908,7 +43886,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _lineContainerComponent__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../lineContainerComponent */ "./components/actionTabs/lineContainerComponent.tsx");
 /* harmony import */ var _lines_textLineComponent__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../lines/textLineComponent */ "./components/actionTabs/lines/textLineComponent.tsx");
-/* harmony import */ var babylonjs_gui_2D_controls_control__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! babylonjs-gui/2D/controls/control */ "babylonjs-gui/2D/adtInstrumentation");
+/* harmony import */ var babylonjs_gui_2D_controls_control__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! babylonjs-gui/2D/controls/control */ "babylonjs-gui/2D/controls/image");
 /* harmony import */ var babylonjs_gui_2D_controls_control__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(babylonjs_gui_2D_controls_control__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _lines_sliderLineComponent__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../lines/sliderLineComponent */ "./components/actionTabs/lines/sliderLineComponent.tsx");
 /* harmony import */ var _lines_floatLineComponent__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../lines/floatLineComponent */ "./components/actionTabs/lines/floatLineComponent.tsx");
@@ -44213,7 +44191,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _commonControlPropertyGridComponent__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./commonControlPropertyGridComponent */ "./components/actionTabs/tabs/propertyGrids/gui/commonControlPropertyGridComponent.tsx");
 /* harmony import */ var _lineContainerComponent__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../lineContainerComponent */ "./components/actionTabs/lineContainerComponent.tsx");
-/* harmony import */ var babylonjs_gui_2D_controls_image__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! babylonjs-gui/2D/controls/image */ "babylonjs-gui/2D/adtInstrumentation");
+/* harmony import */ var babylonjs_gui_2D_controls_image__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! babylonjs-gui/2D/controls/image */ "babylonjs-gui/2D/controls/image");
 /* harmony import */ var babylonjs_gui_2D_controls_image__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(babylonjs_gui_2D_controls_image__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _lines_floatLineComponent__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../lines/floatLineComponent */ "./components/actionTabs/lines/floatLineComponent.tsx");
 /* harmony import */ var _lines_checkBoxLineComponent__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../lines/checkBoxLineComponent */ "./components/actionTabs/lines/checkBoxLineComponent.tsx");
@@ -44627,7 +44605,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "../../node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _commonControlPropertyGridComponent__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./commonControlPropertyGridComponent */ "./components/actionTabs/tabs/propertyGrids/gui/commonControlPropertyGridComponent.tsx");
-/* harmony import */ var babylonjs_gui_2D_controls_textBlock__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! babylonjs-gui/2D/controls/textBlock */ "babylonjs-gui/2D/adtInstrumentation");
+/* harmony import */ var babylonjs_gui_2D_controls_textBlock__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! babylonjs-gui/2D/controls/textBlock */ "babylonjs-gui/2D/controls/image");
 /* harmony import */ var babylonjs_gui_2D_controls_textBlock__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(babylonjs_gui_2D_controls_textBlock__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _lineContainerComponent__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../lineContainerComponent */ "./components/actionTabs/lineContainerComponent.tsx");
 /* harmony import */ var _lines_textInputLineComponent__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../lines/textInputLineComponent */ "./components/actionTabs/lines/textInputLineComponent.tsx");
@@ -46032,7 +46010,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _lines_optionsLineComponent__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../../lines/optionsLineComponent */ "./components/actionTabs/lines/optionsLineComponent.tsx");
 /* harmony import */ var _lines_fileButtonLineComponent__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../../lines/fileButtonLineComponent */ "./components/actionTabs/lines/fileButtonLineComponent.tsx");
 /* harmony import */ var _lines_valueLineComponent__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../../lines/valueLineComponent */ "./components/actionTabs/lines/valueLineComponent.tsx");
-/* harmony import */ var babylonjs_gui_2D_adtInstrumentation__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! babylonjs-gui/2D/adtInstrumentation */ "babylonjs-gui/2D/adtInstrumentation");
+/* harmony import */ var babylonjs_gui_2D_adtInstrumentation__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! babylonjs-gui/2D/adtInstrumentation */ "babylonjs-gui/2D/controls/image");
 /* harmony import */ var babylonjs_gui_2D_adtInstrumentation__WEBPACK_IMPORTED_MODULE_12___default = /*#__PURE__*/__webpack_require__.n(babylonjs_gui_2D_adtInstrumentation__WEBPACK_IMPORTED_MODULE_12__);
 /* harmony import */ var _customPropertyGridComponent__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../customPropertyGridComponent */ "./components/actionTabs/tabs/propertyGrids/customPropertyGridComponent.tsx");
 /* harmony import */ var _lines_buttonLineComponent__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../../../lines/buttonLineComponent */ "./components/actionTabs/lines/buttonLineComponent.tsx");
@@ -48171,7 +48149,7 @@ var TabsComponent = /** @class */ (function (_super) {
 /***/ (function(module, exports, __webpack_require__) {
 
 
-var content = __webpack_require__(/*! !../../../../node_modules/css-loader!../../../../node_modules/sass-loader/lib/loader.js!./embedHost.scss */ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./components/embedHost/embedHost.scss");
+var content = __webpack_require__(/*! !../../../../node_modules/css-loader!../../../../node_modules/sass-loader/dist/cjs.js!./embedHost.scss */ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/dist/cjs.js!./components/embedHost/embedHost.scss");
 
 if(typeof content === 'string') content = [[module.i, content, '']];
 
@@ -49656,7 +49634,7 @@ var ExtensionsComponent = /** @class */ (function (_super) {
 /***/ (function(module, exports, __webpack_require__) {
 
 
-var content = __webpack_require__(/*! !../../../../node_modules/css-loader!../../../../node_modules/sass-loader/lib/loader.js!./sceneExplorer.scss */ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./components/sceneExplorer/sceneExplorer.scss");
+var content = __webpack_require__(/*! !../../../../node_modules/css-loader!../../../../node_modules/sass-loader/dist/cjs.js!./sceneExplorer.scss */ "../../node_modules/css-loader/index.js!../../node_modules/sass-loader/dist/cjs.js!./components/sceneExplorer/sceneExplorer.scss");
 
 if(typeof content === 'string') content = [[module.i, content, '']];
 
@@ -51010,14 +50988,14 @@ var Tools = /** @class */ (function () {
 
 /***/ }),
 
-/***/ "babylonjs-gui/2D/adtInstrumentation":
+/***/ "babylonjs-gui/2D/controls/image":
 /*!************************************************************************************************************************!*\
   !*** external {"root":["BABYLON","GUI"],"commonjs":"babylonjs-gui","commonjs2":"babylonjs-gui","amd":"babylonjs-gui"} ***!
   \************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_babylonjs_gui_2D_adtInstrumentation__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_babylonjs_gui_2D_controls_image__;
 
 /***/ }),
 
